@@ -33,20 +33,41 @@ The infrastructure is set up using Docker containers, there are dedicated contai
 
 **Example**
 
-```http://mazerunner_docker_host:7474/service/mazerunner/analysis/{analysis}/{relationship_type}```
+```
+http://mazerunner_docker_host:7474/service/mazerunner/analysis/{analysis}/{relationship_type}
+```
 
 ### Pagerank
-```http://mazerunner_docker_host:7474/service/mazerunner/analysis/pagerank/ITERACTION```
+```
+http://mazerunner_docker_host:7474/service/mazerunner/analysis/pagerank/ITERACTION
+```
 
-###Architecture in a nutshell
+### Architecture in a nutshell
 
 ----------
 
 <p align="center">
-  <img height="400" src="../assets/images/architecture.png">
+  <img height="400" src="https://raw.githubusercontent.com/mastayoda/neo4j-benchmark/master/assets/images/neo4j_mazerunner_arquitecture.png">
 </p>
 
 ----------
+
+
+# Comparing Neo4j + Mazerunner + HDFS and TruenoDB + Spark Job Server + Spark GraphX
+
+
+## Compute Engine - GraphX PageRank Algorithm
+
+
+| GraphDB                     | Spark Job Request (secs) | PageRank (secs) | Total |
+| --------------------------- | ------------------------ | --------------- | ----- |
+| TruenoDB                    |      3.0536457           | 26.2495         | 29.3031457 |
+| Neo4j + Mazerunner + HDFS   |      2.2883707           | 30.4506902      | 32.7390609 |
+
+<p align="center">
+  <img height="400" src="https://raw.githubusercontent.com/mastayoda/neo4j-benchmark/master/assets/images/trueno_neo4j_compute_pagerank_plot.png">
+</p>
+
 
 # References
 * [1] https://neo4j.com/blog/using-apache-spark-neo4j-big-data-graph-analytics/
