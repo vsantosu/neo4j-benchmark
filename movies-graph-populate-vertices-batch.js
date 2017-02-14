@@ -43,7 +43,7 @@ trueno.connect((s)=> {
         if (prop == "label") {
           v.setLabel(vertices[vkey][prop]);
         } else {
-          v.setProperty(prop, vertices[vkey][prop]);
+          v.setProperty(prop, vertices[vkey][prop]); 
         }
       }
 
