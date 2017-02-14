@@ -1,0 +1,9 @@
+Neo4j:
+
+669293.426ms = 11.15 minutes
+685226.622ms = 11.42 minutes
+
+Trueno:
+
+662882.247ms = 11.048 minutes
+667379.615ms = 11.12 minutes
