@@ -44,8 +44,6 @@ http://mazerunner_docker_host:7474/service/mazerunner/analysis/pagerank/ITERACTI
 
 ### Architecture in a nutshell
 
-----------
-
 <p align="center">
   <img height="400" src="https://raw.githubusercontent.com/mastayoda/neo4j-benchmark/master/assets/images/neo4j_mazerunner_arquitecture.png">
 </p>
@@ -53,10 +51,12 @@ http://mazerunner_docker_host:7474/service/mazerunner/analysis/pagerank/ITERACTI
 ----------
 
 
-# Comparing Neo4j + Mazerunner + HDFS and TruenoDB + Spark Job Server + Spark GraphX
+# Comparing Neo4j and TruenoDB [Spark based architecture]
 
+Since they both depend on Spark GraphX the running time for the provided algorithms is roughly the same.
+TruenoDB takes a little bit longer when requesting a job to the spark engine (Spark Job Server).
 
-## Compute Engine - GraphX PageRank Algorithm
+## GraphX PageRank Algorithm
 
 
 | GraphDB                     | Spark Job Request (secs) | PageRank (secs) | Total |
@@ -64,10 +64,23 @@ http://mazerunner_docker_host:7474/service/mazerunner/analysis/pagerank/ITERACTI
 | TruenoDB                    |      3.0536457           | 26.2495         | 29.3031457 |
 | Neo4j + Mazerunner + HDFS   |      2.2883707           | 30.4506902      | 32.7390609 |
 
-<p align="center">
+<p align="left">
   <img height="400" src="https://raw.githubusercontent.com/mastayoda/neo4j-benchmark/master/assets/images/trueno_neo4j_compute_pagerank_plot.png">
 </p>
 
+----------
+
+## GraphX Connected Components Algorithm
+
+
+| GraphDB                     | Spark Job Request (secs) | Connected Components (secs) | Total |
+| --------------------------- | ------------------------ | --------------------------- | ----- |
+| TruenoDB                    |      3.0536457           | 9.0676                      | 12.1212457 |
+| Neo4j + Mazerunner + HDFS   |      2.2883707           | 10.757                      | 13.0453707 |
+
+<p align="left">
+  <img height="400" src="https://raw.githubusercontent.com/mastayoda/neo4j-benchmark/master/assets/images/trueno_neo4j_compute_connectedcomponents_plot.png">
+</p>
 
 # References
 * [1] https://neo4j.com/blog/using-apache-spark-neo4j-big-data-graph-analytics/
