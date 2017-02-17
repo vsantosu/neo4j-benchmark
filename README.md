@@ -84,6 +84,18 @@ TruenoDB takes a little bit longer when requesting a job to the spark engine (Sp
 
 ----------
 
+## Performance Benchmarking
+
+|	              | Single Reads (records/secs)	| Reads/Write	(records/secs) | Neighbors (records/secs) |
+| ------------- | ------------- | ----------- | ---------- |
+| Trueno	      | 1306.3980  	  | 201.4081    |	233.4742   |
+| Neo4j	        | 4736.0138	    | 2445.6290   |	10307.9885 |
+
+<p align="left">
+  <img height="600" src="https://raw.githubusercontent.com/mastayoda/neo4j-benchmark/master/imgs/performance-chart-1.png">
+</p>
+
+----------
 ## Benchmarking Batch Writes
 
 In this experiment, we inserted the movies dataset in batches of 300 components until completion. We ran separate inserts(for vertices and edges).
