@@ -9,6 +9,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "neo4j-driver": "^1.1.0"
+    "neo4j-driver": "^1.1.0",
+    "bluebird": "^3.4.0",
+    "csv-parser": "^1.11.0"
   }
 }

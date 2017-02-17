@@ -42,11 +42,14 @@ driver.onError = function(error) {
 let session = driver.session();
 
 let query1 = "MATCH (d:Director) -[]-> () WHERE d.name = {name} RETURN d";
+let query2 = "MATCH (n:Director {name: {name}}) SET n.age = {value}  RETURN n"
 let query3 = "MATCH (d:Director) -[r:FILMS]-> (f:Film) WHERE d.name = {name} RETURN f"
 
 let hrstart = [];
 let hrend = [];
+let nproc = [];
 
+// get a director by its name
 function getDirector(director, resolve, reject) {
     let param1 = {name: director};
     let result = session.run(query1, param1);
@@ -58,6 +61,7 @@ function getDirector(director, resolve, reject) {
                     // console.log('onNext');
                 },
                 onCompleted: function() {
+                    nproc[0]++;
                     resolve();
                     // console.log('onCompleted');
                 },
@@ -71,6 +75,25 @@ function getDirector(director, resolve, reject) {
     });
 }
 
+// set a director by its name
+function setDirector(director, resolve, reject) {
+    let param2 = {name: director, value: 1};
+    let result = session.run(query2, param2);
+
+    return new Promise(() => {
+        result
+            .then(record => {
+                // console.log(record);
+                nproc[1]++;
+                resolve();
+            })
+            .catch(error => {
+                console.log(error);
+                reject();
+            });
+    });
+}
+
 // get all the films of a director
 function getFilms(director, resolve, reject) {
     let param3 = {name: director};
@@ -80,6 +103,7 @@ function getFilms(director, resolve, reject) {
         result
             .subscribe({
                 onNext: function(record) {
+                    nproc[2]++;
                     // console.log('onNext');
                 },
                 onCompleted: function() {
@@ -94,25 +118,6 @@ function getFilms(director, resolve, reject) {
 
             });
     });
-
-        // .then(function(records) {
-        //     records.forEach((record) => {
-        //         for (let i in record) {
-        //             console.log(i, ' --> ', record[i]);
-        //         }
-        //     });
-        //
-        //     let summary = result.summarize();
-        //     console.log(summary.updateStatistics.nodesCreated())
-        // })
-        // .catch(function(error) {
-        //     console.log('run --> catch: ', name);
-        //     console.log(error);
-        // })
-        // .then(function() {
-        //     console.log('session closed!')
-        //     session.close();
-        // });
 }
 
 function singleReads() {
@@ -145,7 +150,7 @@ function singleReads() {
 
                 Promise.all(promiseArray).then(() => {
                     hrend[0] = process.hrtime(hrstart[0]);
-                    console.log('Single Reads     %ds %dms', hrend[0][0], hrend[0][1]/1000000);
+                    console.log('Single Reads\t%ds %dms\t%d records\t%d records/s', hrend[0][0], hrend[0][1]/1000000, nproc[0], nproc[0]/(hrend[0][0] + hrend[0][1]/1000000000));
                     session.close();
                     resolve();
                 });
@@ -155,6 +160,41 @@ function singleReads() {
 }
 
 function singleWrites() {
+
+    let self = this;
+    let directors = [];
+    let promiseArray = [];
+
+    return new Promise((resolve, reject) => {
+
+        fs.createReadStream(input)
+            .pipe(csv({separator: ','}))
+            .on('data', function(data) {
+                // console.log('-->', data.name);
+                directors.push(data.name);
+            })
+            .on('end', function() {
+                console.log('----> end');
+
+                hrstart[1] = process.hrtime();
+
+                for (let k in directors) {
+                    promiseArray.push(
+                        new Promise((resolve, reject) => {
+                            /* Retrieve films */
+                            setDirector(directors[k], resolve, reject);
+                        })
+                    )
+                }
+
+                Promise.all(promiseArray).then(() => {
+                    hrend[1] = process.hrtime(hrstart[1]);
+                    console.log('Single Writes\t%ds %dms\t%d records\t%d records/t', hrend[1][0], hrend[1][1]/1000000, nproc[1], nproc[1]/(hrend[1][0] + hrend[1][1]/1000000000));
+                    session.close();
+                    resolve();
+                });
+            })
+    })
 
 }
 
@@ -189,7 +229,7 @@ function neighbors() {
 
                 Promise.all(promiseArray).then(() => {
                     hrend[2] = process.hrtime(hrstart[2]);
-                    console.log('Neighbors        %ds %dms', hrend[2][0], hrend[2][1]/1000000);
+                    console.log('Neighbors\t%ds %dms\t%d records\t%d records/s', hrend[2][0], hrend[2][1]/1000000, nproc[2], nproc[2]/(hrend[2][0] + hrend[2][1]/1000000000));
                     session.close();
                     resolve(hrend - hrstart);
                 });
@@ -198,37 +238,25 @@ function neighbors() {
 
 }
 
-
-
-
-// Retrieve all directors
-// session
-//     .run(query1)
-//     .then(result => {
-//
-//         console.log('retrieving data...')
-//         // Iterate thru all directors
-//         for (let key in result.records) {
-//             // Retrieve movies from each director
-//             getFilms(result.records[key].get('d'));
-//         }
-//         session.close();
-//     })
-//     .catch(error => {
-//         console.log(error);
-//     })
-
 function doTest() {
 
     console.log('neo4j');
     console.log('doTest');
 
+    /* init */
+    nproc[0] = 0;
+    nproc[1] = 0;
+    nproc[2] = 0;
+
     /* single reading */
-    singleReads();
+    // singleReads();
+
+    /* single writing */
+    // singleWrites();
 
     /* neighbors reading */
-    // neighbors();
+    neighbors();
 
-    // Close driver instance
+    /* Close driver instance */
     // driver.close();
 }

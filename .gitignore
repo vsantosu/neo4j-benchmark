@@ -1,1 +1,11 @@
 node_modules
+coverage
+.idea
+dist/
+
+#OS
+.DS_Store
+Thumbs.db
+
+#Yarn
+yarn.lock
