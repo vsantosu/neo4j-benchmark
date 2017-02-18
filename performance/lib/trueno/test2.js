@@ -9,7 +9,7 @@
 
 /* import modules */
 const Promise = require("bluebird");
-const Trueno = require('trueno-javascript-driver');
+const elasticsearch = require('elasticsearch');
 const csv = require('csv-parser');
 const fs = require('fs');
 
@@ -17,12 +17,14 @@ const dbName = 'movies';
 const host  = 'http://localhost';
 
 /* Instantiate connection */
-let trueno = new Trueno({host: host, port: 8000, debug: false});
-let g;
+
+var client = new elasticsearch.Client({
+    host: 'localhost:8004'
+});
 
 
 var counter =0;
-var limit = 100000000;
+var limit = 100000000000;
 
 /* input for test1 */
 const input = __dirname + '/../../data/directors-5000.csv';
@@ -32,13 +34,18 @@ let hrend = [];
 
 function getDirector(director, resolve, reject) {
 
-    let filter = g.filter()
-        .term('prop.name', director);
+    var f = '{"query":{"filtered":{"filter":{"term":{"prop.name":"'+director+'"}}}}}';
+    var q = "{ size: 1000, index: 'movies',type: 'v',body: { query: { filtered: "+ f+" } } }";
+
 
     return new Promise(() => {
         if(++counter <= limit){
-            g.fetch('v', filter)
-                .then(result => {
+            
+            var hrstart = process.hrtime();
+
+            client.search(q).then(result => {
+                    var hrend = process.hrtime(hrstart);
+                    console.info("Execution time: %dms", hrend[1]/1000000);
                     //console.log(result);
                     resolve();
                     // console.log('then');
@@ -46,7 +53,7 @@ function getDirector(director, resolve, reject) {
                 .catch(error => {
                     console.log(error);
                     reject();
-                });
+            });
          }
     });
 
@@ -134,7 +141,6 @@ function singleReads() {
                 Promise.all(promiseArray).then(() => {
                     hrend[0] = process.hrtime(hrstart[0]);
                     console.log('Single Reads     %ds %dms', hrend[0][0], hrend[0][1]/1000000);
-                    trueno.disconnect();
                     resolve();
                 });
             })
@@ -178,7 +184,7 @@ function neighbors() {
                 Promise.all(promiseArray).then(() => {
                     hrend[2] = process.hrtime(hrstart[2]);
                     console.log('Neighbors        %ds %dms', hrend[2][0], hrend[2][1]/1000000);
-                    trueno.disconnect();
+            
                     resolve(hrend - hrstart);
                 });
             })
@@ -201,15 +207,15 @@ function doTest() {
 }
 
 
-trueno.connect(s => {
-
-    /* Create Graph instance */
-    g = trueno.Graph();
-    g.setLabel(dbName);
-
-    doTest();
-
-}, s => {
-    console.log('disconnected', s.id);
+/* trying ping the search engine */
+client.ping({
+    requestTimeout: 10000
+    }, (error)=> {
+    if (error) {
+      console.log('error',error);
+    } else {
+      /* Resolve sync promise */
+     doTest();
+}
 });
 
