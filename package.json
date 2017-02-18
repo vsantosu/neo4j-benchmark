@@ -9,6 +9,9 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "neo4j-driver": "^1.1.0"
+    "bluebird": "^3.4.7",
+    "csv-parser": "^1.11.0",
+    "neo4j-driver": "^1.1.0",
+    "trueno-javascript-driver": "git+https://github.com/truenodb/trueno-javascript-driver.git"
   }
 }
