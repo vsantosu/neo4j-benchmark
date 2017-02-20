@@ -49,30 +49,18 @@ function getDirector(director, resolve, reject) {
         .term('prop.name', director);
 
     return new Promise(() => {
-<<<<<<< HEAD
         if(++counter <= limit){
             g.fetch('v', filter)
                 .then(result => {
                     //console.log(result);
+                    nproc[0]++;
                     resolve();
-                    // console.log('then');
                 })
                 .catch(error => {
-                    console.log(error);
+                    console.log('ERR ==> ', error);
                     reject();
                 });
          }
-=======
-        g.fetch('v', filter)
-            .then(result => {
-                nproc[0]++;
-                resolve();
-                // console.log('then');
-            })
-            .catch(error => {
-                console.log('ERR ==> ', error);
-                reject();
-            });
     });
 
 }
@@ -138,7 +126,6 @@ function setDirectorbyId(director, resolve, reject) {
                 console.log('ERR ==> ', error);
                 reject();
             });
->>>>>>> 517a0b0dc48235128bf19f6e1fcf3e3d9e0e30a9
     });
 
 }
@@ -154,11 +141,6 @@ function getFilms(director, resolve, reject) {
         g.fetch('v', filter)
             .then(results => {
                 results.forEach(v => {
-<<<<<<< HEAD
-                    // console.log(v);
-                    //console.log(v);
-=======
->>>>>>> 517a0b0dc48235128bf19f6e1fcf3e3d9e0e30a9
                     v.out('v')
                         .then(vertices => {
                             nproc[2]++;
