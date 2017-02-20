@@ -20,6 +20,10 @@ const host  = 'http://localhost';
 let trueno = new Trueno({host: host, port: 8000, debug: false});
 let g;
 
+
+var counter =0;
+var limit = 100000000;
+
 /* input for test1 */
 const input = __dirname + '/../../data/directors-10.csv';
 
@@ -45,6 +49,20 @@ function getDirector(director, resolve, reject) {
         .term('prop.name', director);
 
     return new Promise(() => {
+<<<<<<< HEAD
+        if(++counter <= limit){
+            g.fetch('v', filter)
+                .then(result => {
+                    //console.log(result);
+                    resolve();
+                    // console.log('then');
+                })
+                .catch(error => {
+                    console.log(error);
+                    reject();
+                });
+         }
+=======
         g.fetch('v', filter)
             .then(result => {
                 nproc[0]++;
@@ -120,6 +138,7 @@ function setDirectorbyId(director, resolve, reject) {
                 console.log('ERR ==> ', error);
                 reject();
             });
+>>>>>>> 517a0b0dc48235128bf19f6e1fcf3e3d9e0e30a9
     });
 
 }
@@ -135,6 +154,11 @@ function getFilms(director, resolve, reject) {
         g.fetch('v', filter)
             .then(results => {
                 results.forEach(v => {
+<<<<<<< HEAD
+                    // console.log(v);
+                    //console.log(v);
+=======
+>>>>>>> 517a0b0dc48235128bf19f6e1fcf3e3d9e0e30a9
                     v.out('v')
                         .then(vertices => {
                             nproc[2]++;

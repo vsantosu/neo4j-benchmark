@@ -1,4 +1,7 @@
 node_modules
+<<<<<<< HEAD
+npm-debug.log
+=======
 coverage
 .idea
 dist/
@@ -9,3 +12,4 @@ Thumbs.db
 
 #Yarn
 yarn.lock
+>>>>>>> 517a0b0dc48235128bf19f6e1fcf3e3d9e0e30a9
