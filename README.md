@@ -72,7 +72,6 @@ TruenoDB takes a little bit longer when requesting a job to the spark engine (Sp
 
 ## GraphX Connected Components Algorithm
 
-
 | GraphDB                     | Spark Job Request (secs) | Connected Components (secs) | Total |
 | --------------------------- | ------------------------ | --------------------------- | ----- |
 | TruenoDB                    |      3.0536457           | 9.0676                      | 12.1212457 |
@@ -94,9 +93,9 @@ Neo4j Spark Connector offers Spark-2.0 APIs for RDD, **DataFrame**, **GraphX** a
 | GraphDB                     | PageRank (secs) | Total |
 | --------------------------- |--------------- | ----- |
 | TruenoDB                    |  24.738128     | 24.738128 |
-| Neo4j + Mazerunner + HDFS   |  18.15052184   | 18.15052184 |
+| Neo4j Spark Connector   |  18.15052184   | 18.15052184 |
 
-<p align="left">
+<p align="center">
   <img height="400" src="https://raw.githubusercontent.com/mastayoda/neo4j-benchmark/master/assets/images/trueno_neo4jconnector_compute_pagerank_plot.png">
 </p>
 
@@ -140,4 +139,5 @@ In this experiment, we inserted the movies dataset in batches of 300 components 
 # References
 * [1] https://neo4j.com/blog/using-apache-spark-neo4j-big-data-graph-analytics/
 * [2] https://neo4j.com/developer/apache-spark/
+* [3] https://neo4j.com/blog/neo4j-3-0-apache-spark-connector/
 
