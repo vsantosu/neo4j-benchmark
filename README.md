@@ -39,7 +39,7 @@ http://mazerunner_docker_host:7474/service/mazerunner/analysis/{analysis}/{relat
 
 ### Pagerank
 ```
-http://mazerunner_docker_host:7474/service/mazerunner/analysis/pagerank/ITERACTION
+http://mazerunner_docker_host:7474/service/mazerunner/analysis/pagerank/INTERACTION
 ```
 
 ### Architecture in a nutshell
@@ -90,13 +90,13 @@ Neo4j Spark Connector offers Spark-2.0 APIs for RDD, **DataFrame**, **GraphX** a
 
 ## GraphX PageRank Algorithm
 
-| GraphDB                     | PageRank (secs) | Total |
-| --------------------------- |--------------- | ----- |
-| TruenoDB                    |  24.738128     | 24.738128 |
-| Neo4j Spark Connector   |  18.15052184   | 18.15052184 |
+| GraphDB                     | Loading data (secs) | PageRank (secs) | Total |
+| --------------------------- |-------------------- | --------------- | ----- |
+| TruenoDB                    |  0.226920           | 23.514490 | 23.74140975 |
+| Neo4j Spark Connector       |  1.891447322        | 16.25907452 |18.15052184|
 
 <p align="center">
-  <img height="400" src="https://raw.githubusercontent.com/mastayoda/neo4j-benchmark/master/assets/images/trueno_neo4jconnector_compute_pagerank_plot.png">
+  <img height="400" src="https://raw.githubusercontent.com/mastayoda/neo4j-benchmark/master/assets/images/trueno_neo4jconnector_cassandra_pagerank_plot.png">
 </p>
 
 ----------
