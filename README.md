@@ -82,6 +82,24 @@ TruenoDB takes a little bit longer when requesting a job to the spark engine (Sp
   <img height="400" src="https://raw.githubusercontent.com/mastayoda/neo4j-benchmark/master/assets/images/trueno_neo4j_compute_connectedcomponents_plot.png">
 </p>
 
+## Neo4j-Spark-Connector
+
+The Neo4j Spark Connector uses the binary **Bolt** protocol to transfer data from and to a Neo4j server.
+
+Neo4j Spark Connector offers Spark-2.0 APIs for RDD, **DataFrame**, **GraphX** and **GraphFrames**.
+
+
+## GraphX PageRank Algorithm
+
+| GraphDB                     | PageRank (secs) | Total |
+| --------------------------- |--------------- | ----- |
+| TruenoDB                    |  24.738128     | 24.738128 |
+| Neo4j + Mazerunner + HDFS   |  18.15052184   | 18.15052184 |
+
+<p align="left">
+  <img height="400" src="https://raw.githubusercontent.com/mastayoda/neo4j-benchmark/master/assets/images/trueno_neo4jconnector_compute_pagerank_plot.png">
+</p>
+
 ----------
 
 ## Performance Benchmarking
