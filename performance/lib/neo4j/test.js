@@ -189,7 +189,7 @@ function singleWrites() {
 
                 Promise.all(promiseArray).then(() => {
                     hrend[1] = process.hrtime(hrstart[1]);
-                    console.log('Single Writes\t%ds %dms\t%d records\t%d records/t', hrend[1][0], hrend[1][1]/1000000, nproc[1], nproc[1]/(hrend[1][0] + hrend[1][1]/1000000000));
+                    console.log('Single Writes\t%ds %dms\t%d records\t%d records/s', hrend[1][0], hrend[1][1]/1000000, nproc[1], nproc[1]/(hrend[1][0] + hrend[1][1]/1000000000));
                     session.close();
                     resolve();
                 });

@@ -21,7 +21,7 @@ let trueno = new Trueno({host: host, port: 8000, debug: false});
 let g;
 
 /* input for test1 */
-const input = __dirname + '/../../data/directors-500.csv';
+const input = __dirname + '/../../data/directors-10.csv';
 
 
 let hrstart = [];
@@ -285,13 +285,13 @@ function doTest() {
     nproc[2] = 0;
 
     /* single reading */
-    // singleReads();
+    singleReads();
 
     /* single writing */
     // singleWrites();
 
     /* neighbors reading */
-    neighbors();
+    // neighbors();
 
 }
 
