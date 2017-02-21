@@ -1,4 +1,4 @@
-# Compute Engine Benchmarks
+# 1. Compute Engine Benchmarks
 
 # Trueno Compute Server
 The TruenoDB distributed computation server.
@@ -101,35 +101,75 @@ Neo4j Spark Connector offers Spark-2.0 APIs for RDD, **DataFrame**, **GraphX** a
 
 ----------
 
-## Performance Benchmarking
+# 2. Performance Benchmarkings
 
-|	              | Single Reads (records/secs)	| Reads/Write	(records/secs) | Neighbors (records/secs) |
-| ------------- | ------------- | ----------- | ---------- |
-| Trueno	      | 1306.3980  	  | 201.4081    |	233.4742   |
-| Neo4j	        | 4736.0138	    | 2445.6290   |	10307.9885 |
+|	GraphDB | Single Reads (records/secs)	| Single Writes (records/secs) | Reads/Write	(records/secs) | Neighbors (records/secs) |
+| --------| ------------- |-------------| ----------- | ---------- |
+| Trueno	| 1306.3980  	  | 232.0369    | 201.4081    |	233.4742   |
+| Neo4j	  | 4736.0138	    | 234.1537    | 2445.6290   |	10307.9885 |
 
 <p align="left">
-  <img height="600" src="https://raw.githubusercontent.com/mastayoda/neo4j-benchmark/master/assets/images/trueno-neo-performance-1.png">
+  <img height="600" src="https://raw.githubusercontent.com/mastayoda/neo4j-benchmark/master/assets/images/trueno_neo-performance-1.png">
 </p>
 
+## Single Reads
+Read vertices (and all its properties).
+
+|	GraphDB | Input (vertices)	| Throughput (records/secs) | 
+| --------| ----------------- |-------------| 
+| Trueno	| 10000             | 1306.39795  | 
+| Neo4j	  | 20000             | 4735.013766 | 
+
+**Neo4j** is **3.6 faster** than Trueno reading.
+
+## Single Writes
+Create vertices. In case of Trueno, the load was reduced since the server could not handle more than 10000 vertices.
+
+|	GraphDB | Input (vertices)	| Throughput (records/secs) | 
+| --------| ----------------- |-------------| 
+| Trueno	| 10000             | 232.036884  | 
+| Neo4j	  | 20000             | 234.1536586 | 
+
+**Neo4j** is **comparable** with Trueno writing.
+
+## Reads/Writes
+Retrieve a vertex, and set/update a property. In case of Trueno, the load was reduced since the server could not handle more than 5000 vertices. Also, Trueno needed two operations (calls) to accomplish this test instead of one (Neo4j)
+
+|	GraphDB | Input (vertices)	| Throughput (records/secs) | 
+| --------| ----------------- |-------------| 
+| Trueno	| 10000             | 1306.39795  | 
+| Neo4j	  | 20000             | 4735.013766 | 
+
+**Neo4j** is **12 faster** than Trueno reading/writing.
+
+## Neighbors
+Ask for all the direct neighbors of a vertex. In case of Trueno, the load was reduced since the server could not handle more than 500 vertices. Also, Trueno needed two operations (calls) to accomplish this test instead of one (Neo4j)
+
+|	GraphDB | Input (vertices)	| Throughput (records/secs) | 
+| --------| ----------------- |-------------| 
+| Trueno	| 500               | 233.47421   | 
+| Neo4j	  | 20000             | 10307.98849 | 
+
+**Neo4j** is **44 faster** than Trueno finding the direct neighbors of vertices.
+
 ----------
-## Benchmarking Batch Writes
+## 3. Batch Write Benchmarkings
 
 In this experiment, we inserted the movies dataset in batches of 300 components until completion. We ran separate inserts(for vertices and edges).
 
-| GraphDB                     | Minutes |
-| --------------------------- | ------------------------ |
-| Trueno                    |      4.79          |
-| Neo4j                     |      13.27          |
+| GraphDB          | Minutes |
+| ---------------- | ------- |
+| Trueno           | 4.79    |
+| Neo4j            | 13.27   |
 
 <p align="left">
   <img height="600" src="https://raw.githubusercontent.com/mastayoda/neo4j-benchmark/master/insert-edges.png">
 </p>
 
-| GraphDB                     | Total Minutes Edges Write |
-| --------------------------- | ------------------------ |
-| Trueno                    |      11.08          |
-| Neo4j                     |      11.28          |
+| GraphDB          | Minutes |
+| ---------------- | ------- |
+| Trueno           | 11.08   |
+| Neo4j            | 11.28   |
 
 <p align="left">
   <img height="600" src="https://raw.githubusercontent.com/mastayoda/neo4j-benchmark/master/insert-vertices.png">
