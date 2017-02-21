@@ -109,7 +109,7 @@ Neo4j Spark Connector offers Spark-2.0 APIs for RDD, **DataFrame**, **GraphX** a
 | Neo4j	        | 4736.0138	    | 2445.6290   |	10307.9885 |
 
 <p align="left">
-  <img height="600" src="https://raw.githubusercontent.com/mastayoda/neo4j-benchmark/master/imgs/performance-chart-1.png">
+  <img height="600" src="https://raw.githubusercontent.com/mastayoda/neo4j-benchmark/master/assets/images/trueno-neo-performance-1.png">
 </p>
 
 ----------

@@ -13,7 +13,8 @@ const Trueno = require('trueno-javascript-driver');
 const csv = require('csv-parser');
 const fs = require('fs');
 
-const dbName = 'movies';
+// const dbName = 'movies';
+const dbName = 'benchmark';
 const host  = 'http://localhost';
 
 /* Instantiate connection */
@@ -25,7 +26,7 @@ var counter =0;
 var limit = 100000000;
 
 /* input for test1 */
-const input = __dirname + '/../../data/directors-10.csv';
+const input = __dirname + '/../../data/directors-10000.csv';
 
 
 let hrstart = [];
@@ -65,7 +66,34 @@ function getDirector(director, resolve, reject) {
 
 }
 
-// get a director by its name
+// set a director
+function setDirectorbyId(directorId, directorName, resolve, reject) {
+
+    let v = g.addVertex();
+
+    v.setId(directorId);
+    v.setLabel('Person');
+    v.setProperty('name', directorName);
+    v.setProperty('city', 'Somewhere');
+    v.setProperty('age', 99);
+
+    return new Promise(() => {
+        v.persist()
+            .then(values => {
+                nproc[1]++;
+                resolve();
+                // console.log('persist');
+            })
+            .catch(error => {
+                console.log('ERR ==> [%s] [%d] processed', directorId, nproc[1]);
+                console.log('ERR ==> ', error);
+                reject();
+            });
+    });
+
+}
+
+// set a director by its name
 function setDirectorbyName(director, resolve, reject) {
 
     let promises = [];
@@ -84,7 +112,7 @@ function setDirectorbyName(director, resolve, reject) {
                             v.persist()
                                 .then(result => {
                                     // console.log('persist');
-                                    nproc[1]++;
+                                    nproc[2]++;
                                     resolve();
                                 }, error => {
                                     console.log('ERR ==> [%s]', director);
@@ -102,34 +130,13 @@ function setDirectorbyName(director, resolve, reject) {
                     });
 
             }, error => {
-                console.log('ERR ==> [%s] [%d] processed', director, nproc[1]);
+                console.log('ERR ==> [%s] [%d] processed', director, nproc[2]);
                 console.log('ERR ==> ', error);
                 reject();
             });
     });
 
 }
-
-// get a director by its name
-function setDirectorbyId(director, resolve, reject) {
-
-    let filter = g.filter()
-        .term('prop.name', director);
-
-    return new Promise(() => {
-        g.fetch('v', filter)
-            .then(result => {
-                resolve();
-                // console.log('then');
-            })
-            .catch(error => {
-                console.log('ERR ==> ', error);
-                reject();
-            });
-    });
-
-}
-
 
 // get all the films of a director
 function getFilms(director, resolve, reject) {
@@ -200,6 +207,45 @@ function singleReads() {
 }
 
 function singleWrites() {
+
+    let self = this;
+    let directors = [];
+    let promiseArray = [];
+
+    return new Promise((resolve, reject) => {
+
+        fs.createReadStream(input)
+            .pipe(csv({separator: ','}))
+            .on('data', function(data) {
+                // console.log('-->', data.name);
+                directors.push(data.name);
+            })
+            .on('end', function() {
+                console.log('----> end');
+
+                hrstart[1] = process.hrtime();
+
+                for (let k=0; k < directors.length; k++) {
+                    promiseArray.push(
+                        new Promise((resolve, reject) => {
+                            /* Retrieve films */
+                            setDirectorbyId(k, directors[k], resolve, reject);
+                        })
+                    );
+                }
+
+                Promise.all(promiseArray).then(() => {
+                    hrend[1] = process.hrtime(hrstart[1]);
+                    console.log('Single Writes\t%ds %dms\t%d records\t%d records/s', hrend[1][0], hrend[1][1]/1000000, nproc[1], nproc[1]/(hrend[1][0] + hrend[1][1]/1000000000));
+                    trueno.disconnect();
+                    resolve();
+                });
+            })
+    })
+}
+
+function singleReadWrites() {
+
     let self = this;
     let directors = [];
     let promiseArray = [];
@@ -228,14 +274,13 @@ function singleWrites() {
                 }
 
                 Promise.all(promiseArray).then(() => {
-                    hrend[1] = process.hrtime(hrstart[1]);
-                    console.log('Single Writes\t%ds %dms\t%d records\t%d records/s', hrend[1][0], hrend[1][1]/1000000, nproc[1], nproc[1]/(hrend[1][0] + hrend[1][1]/1000000000));
+                    hrend[2] = process.hrtime(hrstart[2]);
+                    console.log('Single Read+Writes\t%ds %dms\t%d records\t%d records/s', hrend[2][0], hrend[2][1]/1000000, nproc[2], nproc[2]/(hrend[2][0] + hrend[2][1]/1000000000));
                     trueno.disconnect();
                     resolve();
                 });
             })
     })
-
 }
 
 function neighbors() {
@@ -268,8 +313,8 @@ function neighbors() {
                 }
 
                 Promise.all(promiseArray).then(() => {
-                    hrend[2] = process.hrtime(hrstart[2]);
-                    console.log('Neighbors\t%ds %dms\t%d records\t%d records/s', hrend[2][0], hrend[2][1]/1000000, nproc[2], nproc[2]/(hrend[2][0] + hrend[2][1]/1000000000));
+                    hrend[3] = process.hrtime(hrstart[3]);
+                    console.log('Neighbors\t%ds %dms\t%d records\t%d records/s', hrend[3][0], hrend[3][1]/1000000, nproc[3], nproc[3]/(hrend[3][0] + hrend[3][1]/1000000000));
                     trueno.disconnect();
                     resolve(hrend - hrstart);
                 });
@@ -291,10 +336,13 @@ function doTest() {
     nproc[2] = 0;
 
     /* single reading */
-    singleReads();
+    // singleReads();
 
     /* single writing */
-    // singleWrites();
+    singleWrites();
+
+    /* single reading/writing */
+    // singleReadWrites();
 
     /* neighbors reading */
     // neighbors();
