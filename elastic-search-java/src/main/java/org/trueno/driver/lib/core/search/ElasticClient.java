@@ -1,15 +1,13 @@
 package org.trueno.driver.lib.core.search;
 
-import org.elasticsearch.action.ActionListener;
-import org.elasticsearch.action.ListenableActionFuture;
-import org.elasticsearch.action.search.SearchRequest;
-import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.action.search.SearchType;
 import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.transport.InetSocketTransportAddress;
+import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.search.SearchHit;
 
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
@@ -32,7 +30,7 @@ public class ElasticClient {
     }
 
     /* connect to elasticsearch using transport client */
-    public void connect(final Callback connCallback, final Callback discoCallback) {
+    public void connect() {
 
         try{
             /* prepare cluster settings */
@@ -45,45 +43,29 @@ public class ElasticClient {
             for(String addr: this.addresses){
                 this.client.addTransportAddress(new InetSocketTransportAddress(new InetSocketAddress( InetAddress.getByName(addr), 9300)));
             }
-            /* return callback */
-            connCallback.method(this.client);
 
         }catch (Exception e){
-            discoCallback.method(e);
+           System.out.println(e);
         }
     }
 
     /* connect to elasticsearch using transport client */
-    public ListenableActionFuture<SearchResponse> search(String q, String index, String type, int size, final Callback resultCallback, final Callback errorCallback) {
-
-        ListenableActionFuture<SearchResponse> r = null;
+    public SearchHit[] search(String q, String index, String type, int size) {
 
         try{
             /* build query */
-            SearchRequestBuilder query = this.client.prepareSearch(index)
+           SearchResponse resp =  this.client.prepareSearch(index)
                     .setTypes(type)
                     .setSearchType(SearchType.DFS_QUERY_THEN_FETCH)
                     .setSize(size)
-                    .setQuery(q);
+                    .setQuery(q).get();
 
-            /* execute search query */
-            r = query.execute();
-            /* execute search query */
-            r.addListener(new ActionListener<SearchResponse>() {
-                @Override
-                public void onResponse(SearchResponse searchResponse) {
-                    resultCallback.method(searchResponse.getHits().getHits());
-                }
-                @Override
-                public void onFailure(Throwable throwable) {
-                    errorCallback.method(throwable);
-                }
-            });
+            return resp.getHits().getHits();
 
         }catch (Exception e){
-            errorCallback.method(e);
+            System.out.println(e);
         }
-        return r;
+        return null;
     }
 
 
