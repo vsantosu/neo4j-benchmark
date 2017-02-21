@@ -17,7 +17,7 @@ const fs = require('fs');
 const host  = 'bolt://localhost';
 
 /* input for testing */
-const input = __dirname + '/../../data/directors-20000.csv';;
+const input = __dirname + '/../../data/directors-10000.csv';;
 
 // Create a driver instance, for the user neo4j with password neo4j.
 // It should be enough to have a single driver per database per application.
@@ -42,8 +42,9 @@ driver.onError = function(error) {
 let session = driver.session();
 
 let query1 = "MATCH (d:Director) -[]-> () WHERE d.name = {name} RETURN d";
-let query2 = "MATCH (n:Director {name: {name}}) SET n.age = {value}  RETURN n"
-let query3 = "MATCH (d:Director) -[r:FILMS]-> (f:Film) WHERE d.name = {name} RETURN f"
+let query2 = "CREATE (a:Vertex {id:{id}, name:{name}, city:{city}, age:{age}})";
+let query3 = "MATCH (n:Director {name: {name}}) SET n.age = {value}  RETURN n"
+let query4 = "MATCH (d:Director) -[r:FILMS]-> (f:Film) WHERE d.name = {name} RETURN f"
 
 let hrstart = [];
 let hrend = [];
@@ -75,10 +76,29 @@ function getDirector(director, resolve, reject) {
     });
 }
 
+// create a director
+function setDirectorbyId(directorId, directorName, resolve, reject) {
+    let param2 = {id:directorId, name:directorName, city:'Somewhere', age:99};
+    let result = session.run(query2, param2);
+
+    return new Promise(() => {
+        result
+            .then(record => {
+                // console.log(record);
+                nproc[1]++;
+                resolve();
+            })
+            .catch(error => {
+                console.log(error);
+                reject();
+            });
+    });
+}
+
 // set a director by its name
 function setDirector(director, resolve, reject) {
-    let param2 = {name: director, value: 1};
-    let result = session.run(query2, param2);
+    let param3 = {name: director, value: 1};
+    let result = session.run(query3, param3);
 
     return new Promise(() => {
         result
@@ -96,8 +116,8 @@ function setDirector(director, resolve, reject) {
 
 // get all the films of a director
 function getFilms(director, resolve, reject) {
-    let param3 = {name: director};
-    let result = session.run(query3, param3);
+    let param4 = {name: director};
+    let result = session.run(query4, param4);
 
     return new Promise(() => {
         result
@@ -178,6 +198,44 @@ function singleWrites() {
 
                 hrstart[1] = process.hrtime();
 
+                for (let k=0; k < directors.length; k++) {
+                    promiseArray.push(
+                        new Promise((resolve, reject) => {
+                            /* Retrieve films */
+                            setDirectorbyId(k, directors[k], resolve, reject);
+                        })
+                    );
+                }
+
+                Promise.all(promiseArray).then(() => {
+                    hrend[1] = process.hrtime(hrstart[1]);
+                    console.log('Single Writes\t%ds %dms\t%d records\t%d records/s', hrend[1][0], hrend[1][1]/1000000, nproc[1], nproc[1]/(hrend[1][0] + hrend[1][1]/1000000000));
+                    session.close();
+                    resolve();
+                });
+            })
+    })
+}
+
+function singleReadWrites() {
+
+    let self = this;
+    let directors = [];
+    let promiseArray = [];
+
+    return new Promise((resolve, reject) => {
+
+        fs.createReadStream(input)
+            .pipe(csv({separator: ','}))
+            .on('data', function(data) {
+                // console.log('-->', data.name);
+                directors.push(data.name);
+            })
+            .on('end', function() {
+                console.log('----> end');
+
+                hrstart[1] = process.hrtime();
+
                 for (let k in directors) {
                     promiseArray.push(
                         new Promise((resolve, reject) => {
@@ -189,13 +247,12 @@ function singleWrites() {
 
                 Promise.all(promiseArray).then(() => {
                     hrend[1] = process.hrtime(hrstart[1]);
-                    console.log('Single Writes\t%ds %dms\t%d records\t%d records/s', hrend[1][0], hrend[1][1]/1000000, nproc[1], nproc[1]/(hrend[1][0] + hrend[1][1]/1000000000));
+                    console.log('Single Read+Writes\t%ds %dms\t%d records\t%d records/s', hrend[1][0], hrend[1][1]/1000000, nproc[1], nproc[1]/(hrend[1][0] + hrend[1][1]/1000000000));
                     session.close();
                     resolve();
                 });
             })
     })
-
 }
 
 function neighbors() {
@@ -252,10 +309,17 @@ function doTest() {
     singleReads();
 
     /* single writing */
-    // singleWrites();
+    singleWrites();
+
+    /* single reading/writing */
+    // singleReadWrites();
 
     /* neighbors reading */
+<<<<<<< HEAD
     //neighbors();
+=======
+    // neighbors();
+>>>>>>> 6ece454beab5552e3fa47b40f75d647fe3324c8a
 
     /* Close driver instance */
     // driver.close();
