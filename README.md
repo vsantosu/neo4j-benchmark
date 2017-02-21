@@ -101,7 +101,7 @@ Neo4j Spark Connector offers Spark-2.0 APIs for RDD, **DataFrame**, **GraphX** a
 
 ----------
 
-# 2. Performance Benchmarkings
+# 2. Performance Benchmarks
 
 |	GraphDB | Single Reads (records/secs)	| Single Writes (records/secs) | Reads/Write	(records/secs) | Neighbors (records/secs) |
 | --------| ------------- |-------------| ----------- | ---------- |
@@ -130,10 +130,10 @@ Create vertices. In case of Trueno, the load was reduced since the server could 
 | Trueno	| 10000             | 232.036884  | 
 | Neo4j	  | 20000             | 234.1536586 | 
 
-**Neo4j** is **comparable** with Trueno writing.
+**Neo4j** is **comparable** with **Trueno** writing.
 
 ## Reads/Writes
-Retrieve a vertex, and set/update a property. In case of Trueno, the load was reduced since the server could not handle more than 5000 vertices. Also, Trueno needed two operations (calls) to accomplish this test instead of one (Neo4j)
+Retrieve a vertex, and set/update a property. In case of Trueno, the load was reduced since the server could not handle more than 5000 concurrent request for reads/writes. Also, Trueno needed two operations (calls) to accomplish this test instead of one (Neo4j)
 
 |	GraphDB | Input (vertices)	| Throughput (records/secs) | 
 | --------| ----------------- |-------------| 
@@ -143,7 +143,7 @@ Retrieve a vertex, and set/update a property. In case of Trueno, the load was re
 **Neo4j** is **12 faster** than Trueno reading/writing.
 
 ## Neighbors
-Ask for all the direct neighbors of a vertex. In case of Trueno, the load was reduced since the server could not handle more than 500 vertices. Also, Trueno needed two operations (calls) to accomplish this test instead of one (Neo4j)
+Ask for all the direct neighbors of a vertex. In case of Trueno, the load was reduced since the server could not handle more than 500 concurrent request for neighbors. Also, Trueno needed two operations (calls) to accomplish this test instead of one (Neo4j)
 
 |	GraphDB | Input (vertices)	| Throughput (records/secs) | 
 | --------| ----------------- |-------------| 
@@ -153,7 +153,7 @@ Ask for all the direct neighbors of a vertex. In case of Trueno, the load was re
 **Neo4j** is **44 faster** than Trueno finding the direct neighbors of vertices.
 
 ----------
-## 3. Batch Write Benchmarkings
+# 3. Batch Write Benchmarks
 
 In this experiment, we inserted the movies dataset in batches of 300 components until completion. We ran separate inserts(for vertices and edges).
 
