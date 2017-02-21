@@ -249,13 +249,13 @@ function doTest() {
     nproc[2] = 0;
 
     /* single reading */
-    // singleReads();
+    singleReads();
 
     /* single writing */
     // singleWrites();
 
     /* neighbors reading */
-    neighbors();
+    //neighbors();
 
     /* Close driver instance */
     // driver.close();

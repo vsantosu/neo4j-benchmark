@@ -24,7 +24,7 @@ var client = new elasticsearch.Client({
 
 
 var counter =0;
-var limit = 100000000000;
+var limit = 10000000000;
 
 /* input for test1 */
 const input = __dirname + '/../../data/directors-5000.csv';
