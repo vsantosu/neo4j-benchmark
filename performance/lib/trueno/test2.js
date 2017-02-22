@@ -17,7 +17,6 @@ const dbName = 'movies';
 const host  = 'http://localhost';
 
 /* Instantiate connection */
-
 var client = new elasticsearch.Client({
     host: 'localhost:8004'
 });
@@ -25,6 +24,7 @@ var client = new elasticsearch.Client({
 
 var counter =0;
 var limit = 10000000000;
+var total = 0;
 
 /* input for test1 */
 const input = __dirname + '/../../data/directors-5000.csv';
@@ -45,8 +45,9 @@ function getDirector(director, resolve, reject) {
 
             client.search(q).then(result => {
                     var hrend = process.hrtime(hrstart);
-                    console.info("Execution time: %dms", hrend[1]/1000000);
+                   // console.info("Execution time: %dms", hrend[1]/1000000);
                     //console.log(result);
+                    total++;
                     resolve();
                     // console.log('then');
                 })
@@ -140,7 +141,7 @@ function singleReads() {
 
                 Promise.all(promiseArray).then(() => {
                     hrend[0] = process.hrtime(hrstart[0]);
-                    console.log('Single Reads     %ds %dms', hrend[0][0], hrend[0][1]/1000000);
+                    console.log('Single Reads     %ds %dms', hrend[0][0], hrend[0][1]/1000000, (total/hrend[0][0]) + " docs/s");
                     resolve();
                 });
             })

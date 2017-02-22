@@ -17,7 +17,9 @@ const fs = require('fs');
 const host  = 'bolt://localhost';
 
 /* input for testing */
-const input = __dirname + '/../../data/directors-10000.csv';;
+const input = __dirname + '/../../data/directors-5000.csv';
+
+var total = 0;
 
 // Create a driver instance, for the user neo4j with password neo4j.
 // It should be enough to have a single driver per database per application.
@@ -59,9 +61,9 @@ function getDirector(director, resolve, reject) {
         result
             .subscribe({
                 onNext: function(record) {
-                    // console.log('onNext');
+             
                 },
-                onCompleted: function() {
+                onCompleted: function(res) {
                     nproc[0]++;
                     resolve();
                     // console.log('onCompleted');
@@ -309,17 +311,12 @@ function doTest() {
     singleReads();
 
     /* single writing */
-    singleWrites();
+    //singleWrites();
 
     /* single reading/writing */
     // singleReadWrites();
 
     /* neighbors reading */
-<<<<<<< HEAD
-    //neighbors();
-=======
-    // neighbors();
->>>>>>> 6ece454beab5552e3fa47b40f75d647fe3324c8a
 
     /* Close driver instance */
     // driver.close();

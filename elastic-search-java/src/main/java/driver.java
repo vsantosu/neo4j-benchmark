@@ -45,7 +45,7 @@ public class driver {
                 String q = "{\"term\":{\"prop.name\":\"" + line[1] + "\"}}";
 
                 /* search */
-                SearchHit[] results = eClient.search(q, "movies", "v", 1000);
+                String[] results = eClient.search(q, "movies", "v", 1000);
 
 //                for(SearchHit hit : results){
 //

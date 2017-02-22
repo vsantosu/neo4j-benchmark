@@ -11,7 +11,10 @@ import org.elasticsearch.search.SearchHit;
 
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
-
+import java.io.PrintStream;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Arrays;
 
 /**
  * Created by Victor, edited by Servio on 2017.02.18.
@@ -39,6 +42,7 @@ public class ElasticClient {
                     .build();
             /* instantiate transport build */
             this.client = TransportClient.builder().settings(settings).build();
+
             /* set addresses */
             for(String addr: this.addresses){
                 this.client.addTransportAddress(new InetSocketTransportAddress(new InetSocketAddress( InetAddress.getByName(addr), 9300)));
@@ -50,9 +54,21 @@ public class ElasticClient {
     }
 
     /* connect to elasticsearch using transport client */
-    public SearchHit[] search(String q, String index, String type, int size) {
+    public String[] search(String q, String index, String type, int size) {
 
         try{
+
+            // System.out.println("q: " + q);
+            // System.out.println("index: " + index);
+            // System.out.println("type: " + type);
+            // System.out.println("size: " + size);
+            
+            // System.out.println("clusterName: " + this.clusterName);
+            // System.out.println("addresses: " + this.addresses[0]);
+            // System.out.println("client: " + this.client);
+
+            long totalstartTime = System.currentTimeMillis();
+
             /* build query */
            SearchResponse resp =  this.client.prepareSearch(index)
                     .setTypes(type)
@@ -60,11 +76,25 @@ public class ElasticClient {
                     .setSize(size)
                     .setQuery(q).get();
 
-            return resp.getHits().getHits();
+            SearchHit[] results = resp.getHits().getHits();
+            ArrayList<String> sources = new ArrayList<String>();
+
+            for(SearchHit h: results){
+                sources.add(h.getSourceAsString());
+            }
+
+            String[] fResults = sources.toArray(new String[sources.size()]);
+
+            long totalestimatedTime = System.currentTimeMillis() - totalstartTime;
+            // System.out.println("time ms: " + totalestimatedTime);
+
+            /* returning array of strings */
+            return fResults;
 
         }catch (Exception e){
-            System.out.println(e);
+            e.printStackTrace(new PrintStream(System.out));
         }
+
         return null;
     }
 

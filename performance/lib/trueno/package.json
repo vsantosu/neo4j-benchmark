@@ -12,6 +12,7 @@
     "bluebird": "^3.4.7",
     "csv-parser": "^1.11.0",
     "elasticsearch": "^12.1.3",
+    "java": "^0.8.0",
     "neo4j-driver": "^1.1.0",
     "trueno-javascript-driver": "git+https://github.com/truenodb/trueno-javascript-driver.git"
   }
