@@ -18,9 +18,9 @@ The results will be stored in the Database (e.g. Apache Cassandra, Scylla).
 
 ---------------
 
-# Using Apache Spark and Neo4j for Big Data Graph Analytics
+## Using Apache Spark and Neo4j for Big Data Graph Analytics
 
-## Mazerunner for Neo4j
+### Mazerunner for Neo4j
 
 Neo4j uses mazarunner for big data graph processing. Mazerunner is an unmanaged extension [1].
 Apache Spark’s GraphX module constitutes the main component of Mazerunner. When an agent job is dispatched, a subgraph is
@@ -28,19 +28,6 @@ exported from Neo4j and written to Apache Hadoop HDFS.  After Neo4j exports a su
 Spark is notified to begin processing that data [1].
 
 One focus of this approach is on data safety, that’s why it uses a persistent queue (RabbitMQ) to communicate data between Neo4j and Spark [2].
-
-The infrastructure is set up using Docker containers, there are dedicated containers for Spark, RabbitMQ, HDFS and Neo4j with the Mazerunner Extension [2].
-
-**Example**
-
-```
-http://mazerunner_docker_host:7474/service/mazerunner/analysis/{analysis}/{relationship_type}
-```
-
-### Pagerank
-```
-http://mazerunner_docker_host:7474/service/mazerunner/analysis/pagerank/INTERACTION
-```
 
 ### Architecture in a nutshell
 
@@ -50,13 +37,12 @@ http://mazerunner_docker_host:7474/service/mazerunner/analysis/pagerank/INTERACT
 
 ----------
 
-
-# Comparing Neo4j and TruenoDB [Spark based architecture]
+## 1.1 Comparing Neo4j+Mazerunner and TruenoDB
 
 Since they both depend on Spark GraphX the running time for the provided algorithms is roughly the same.
 TruenoDB takes a little bit longer when requesting a job to the spark engine (Spark Job Server).
 
-## GraphX PageRank Algorithm
+### GraphX PageRank Algorithm
 
 
 | GraphDB                     | Spark Job Request (secs) | PageRank (secs) | Total |
@@ -70,7 +56,7 @@ TruenoDB takes a little bit longer when requesting a job to the spark engine (Sp
 
 ----------
 
-## GraphX Connected Components Algorithm
+### GraphX Connected Components Algorithm
 
 | GraphDB                     | Spark Job Request (secs) | Connected Components (secs) | Total |
 | --------------------------- | ------------------------ | --------------------------- | ----- |
@@ -81,22 +67,22 @@ TruenoDB takes a little bit longer when requesting a job to the spark engine (Sp
   <img height="400" src="https://raw.githubusercontent.com/mastayoda/neo4j-benchmark/master/assets/images/trueno_neo4j_compute_connectedcomponents_plot.png">
 </p>
 
-## Neo4j-Spark-Connector
+## 1.2 Neo4j-Spark-Connector
 
 The Neo4j Spark Connector uses the binary **Bolt** protocol to transfer data from and to a Neo4j server.
 
 Neo4j Spark Connector offers Spark-2.0 APIs for RDD, **DataFrame**, **GraphX** and **GraphFrames**.
-
 
 ## GraphX PageRank Algorithm
 
 | GraphDB                     | Loading data (secs) | PageRank (secs) | Total |
 | --------------------------- |-------------------- | --------------- | ----- |
 | TruenoDB                    |  0.226920           | 23.514490 | 23.74140975 |
-| Neo4j Spark Connector       |  1.891447322        | 16.25907452 |18.15052184|
+| Neo4j Spark Connector - Iterative       |  1.891447322        | 16.25907452 |18.15052184|
+| Neo4j Spark Connector - Convergence      |  1.848343323        | 28.51172715 |30.36007047|
 
 <p align="center">
-  <img height="400" src="https://raw.githubusercontent.com/mastayoda/neo4j-benchmark/master/assets/images/trueno_neo4jconnector_cassandra_pagerank_plot.png">
+  <img height="400" src="https://raw.githubusercontent.com/mastayoda/neo4j-benchmark/master/assets/images/trueno_neo4jconnector_cassandra_convergence_pagerank_plot.png">
 </p>
 
 ----------
