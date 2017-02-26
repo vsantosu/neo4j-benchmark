@@ -167,6 +167,11 @@ function getFilms(director, resolve, reject) {
     });
 }
 
+/**
+ * Single Reads.
+ * The test consists on open an input file, and read a single vertex (and all its properties) by accessing the vertex
+ * using an index.
+ */
 function singleReads() {
 
     let self = this;
@@ -197,7 +202,8 @@ function singleReads() {
 
                 Promise.all(promiseArray).then(() => {
                     hrend[0] = process.hrtime(hrstart[0]);
-                    console.log('Single Reads\t%ds %dms\t%d records\t%d records/s', hrend[0][0], hrend[0][1]/1000000, nproc[0], nproc[0]/(hrend[0][0] + hrend[0][1]/1000000000));
+                    console.log('Single Reads\t%ds %dms\t%d records\t%d records/s',
+                        hrend[0][0], hrend[0][1]/1000000, nproc[0], nproc[0]/(hrend[0][0] + hrend[0][1]/1000000000));
                     trueno.disconnect();
                     resolve();
                 });
@@ -206,6 +212,10 @@ function singleReads() {
 
 }
 
+/**
+ * Single Writes
+ * The test consists on open an input file, and create a vertex using the input data.
+ */
 function singleWrites() {
 
     let self = this;
@@ -236,7 +246,8 @@ function singleWrites() {
 
                 Promise.all(promiseArray).then(() => {
                     hrend[1] = process.hrtime(hrstart[1]);
-                    console.log('Single Writes\t%ds %dms\t%d records\t%d records/s', hrend[1][0], hrend[1][1]/1000000, nproc[1], nproc[1]/(hrend[1][0] + hrend[1][1]/1000000000));
+                    console.log('Single Writes\t%ds %dms\t%d records\t%d records/s',
+                        hrend[1][0], hrend[1][1]/1000000, nproc[1], nproc[1]/(hrend[1][0] + hrend[1][1]/1000000000));
                     trueno.disconnect();
                     resolve();
                 });
@@ -244,6 +255,10 @@ function singleWrites() {
     })
 }
 
+/**
+ * Reads/Writes (50/50 load)
+ * The test consists on read an input file, and retrieve a vertex and update the properties of that vertex.
+ */
 function singleReadWrites() {
 
     let self = this;
@@ -275,7 +290,8 @@ function singleReadWrites() {
 
                 Promise.all(promiseArray).then(() => {
                     hrend[2] = process.hrtime(hrstart[2]);
-                    console.log('Single Read+Writes\t%ds %dms\t%d records\t%d records/s', hrend[2][0], hrend[2][1]/1000000, nproc[2], nproc[2]/(hrend[2][0] + hrend[2][1]/1000000000));
+                    console.log('Single Read+Writes\t%ds %dms\t%d records\t%d records/s',
+                        hrend[2][0], hrend[2][1]/1000000, nproc[2], nproc[2]/(hrend[2][0] + hrend[2][1]/1000000000));
                     trueno.disconnect();
                     resolve();
                 });
@@ -283,6 +299,10 @@ function singleReadWrites() {
     })
 }
 
+/**
+ * Neighbors (1 hop)
+ * The test consists on read an input file, and ask for all the direct neighbors of a vertex.
+ */
 function neighbors() {
 
     let self = this;
@@ -314,7 +334,8 @@ function neighbors() {
 
                 Promise.all(promiseArray).then(() => {
                     hrend[3] = process.hrtime(hrstart[3]);
-                    console.log('Neighbors\t%ds %dms\t%d records\t%d records/s', hrend[3][0], hrend[3][1]/1000000, nproc[3], nproc[3]/(hrend[3][0] + hrend[3][1]/1000000000));
+                    console.log('Neighbors\t%ds %dms\t%d records\t%d records/s',
+                        hrend[3][0], hrend[3][1]/1000000, nproc[3], nproc[3]/(hrend[3][0] + hrend[3][1]/1000000000));
                     trueno.disconnect();
                     resolve(hrend - hrstart);
                 });

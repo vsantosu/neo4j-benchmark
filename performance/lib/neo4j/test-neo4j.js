@@ -16,8 +16,10 @@ const fs = require('fs');
 // const host  = 'bolt://mc17.cs.purdue.edu';
 const host  = 'bolt://localhost';
 
-/* input for testing */
-const input = __dirname + '/../../data/directors-5000.csv';
+// Parameters for test
+// const input = __dirname + '/../../data/directors-5000.csv';
+const input = __dirname + '/../../data/films-100k.csv';
+const times = 10;
 
 var total = 0;
 
@@ -48,6 +50,9 @@ let query2 = "CREATE (a:Vertex {id:{id}, name:{name}, city:{city}, age:{age}})";
 let query3 = "MATCH (n:Director {name: {name}}) SET n.age = {value}  RETURN n"
 let query4 = "MATCH (d:Director) -[r:FILMS]-> (f:Film) WHERE d.name = {name} RETURN f"
 
+let query5 = "MATCH (f:Film) -[]-> () WHERE f.name = {name} RETURN f";
+
+
 let hrstart = [];
 let hrend = [];
 let nproc = [];
@@ -61,12 +66,12 @@ function getDirector(director, resolve, reject) {
         result
             .subscribe({
                 onNext: function(record) {
-             
+                    console.log('[%d] ==> ', nproc[0], record._fields);
                 },
-                onCompleted: function(res) {
+                onCompleted: function(result) {
+                    // console.log('onCompleted: ', result);
                     nproc[0]++;
                     resolve();
-                    // console.log('onCompleted');
                 },
                 onError: function(error) {
                     // console.log('onError');
@@ -117,7 +122,7 @@ function setDirector(director, resolve, reject) {
 }
 
 // get all the films of a director
-function getFilms(director, resolve, reject) {
+function getFilmsByDirector(director, resolve, reject) {
     let param4 = {name: director};
     let result = session.run(query4, param4);
 
@@ -142,6 +147,37 @@ function getFilms(director, resolve, reject) {
     });
 }
 
+// get a director by its name
+function getFilm(film, resolve, reject) {
+    let param5 = {name: film};
+    let result = session.run(query5, param5);
+
+    return new Promise(() => {
+        result
+            .subscribe({
+                onNext: function(record) {
+                    // console.log('[%d] ==> ', nproc[0], record._fields);
+                },
+                onCompleted: function(result) {
+                    // console.log('onCompleted: ', result);
+                    nproc[0]++;
+                    resolve();
+                },
+                onError: function(error) {
+                    // console.log('onError');
+                    console.log(error);
+                    reject();
+                }
+
+            });
+    });
+}
+
+/**
+ * Single Reads.
+ * The test consists on open an input file, and read a single vertex (and all its properties) by accessing the vertex
+ * using an index.
+ */
 function singleReads() {
 
     let self = this;
@@ -157,23 +193,24 @@ function singleReads() {
                 directors.push(data.name);
             })
             .on('end', function() {
-                console.log('----> end');
-
+                // console.log('----> end');
                 hrstart[0] = process.hrtime();
 
                 for (let k in directors) {
                     promiseArray.push(
                         new Promise((resolve, reject) => {
                             /* Retrieve films */
-                            getDirector(directors[k], resolve, reject);
+                            // getDirector(directors[k], resolve, reject);
+                            getFilm(directors[k], resolve, reject);
                         })
                     )
                 }
 
                 Promise.all(promiseArray).then(() => {
                     hrend[0] = process.hrtime(hrstart[0]);
-                    console.log('Single Reads\t%ds %dms\t%d records\t%d records/s', hrend[0][0], hrend[0][1]/1000000, nproc[0], nproc[0]/(hrend[0][0] + hrend[0][1]/1000000000));
-                    session.close();
+                    console.log('Single Reads\t%ds %dms\t%d records\t%d records/s',
+                        hrend[0][0], hrend[0][1]/1000000, nproc[0], nproc[0]/(hrend[0][0] + hrend[0][1]/1000000000));
+                    // session.close();
                     resolve();
                 });
             })
@@ -181,6 +218,10 @@ function singleReads() {
 
 }
 
+/**
+ * Single Writes
+ * The test consists on open an input file, and create a vertex using the input data.
+ */
 function singleWrites() {
 
     let self = this;
@@ -211,7 +252,8 @@ function singleWrites() {
 
                 Promise.all(promiseArray).then(() => {
                     hrend[1] = process.hrtime(hrstart[1]);
-                    console.log('Single Writes\t%ds %dms\t%d records\t%d records/s', hrend[1][0], hrend[1][1]/1000000, nproc[1], nproc[1]/(hrend[1][0] + hrend[1][1]/1000000000));
+                    console.log('Single Writes\t%ds %dms\t%d records\t%d records/s',
+                        hrend[1][0], hrend[1][1]/1000000, nproc[1], nproc[1]/(hrend[1][0] + hrend[1][1]/1000000000));
                     session.close();
                     resolve();
                 });
@@ -219,6 +261,11 @@ function singleWrites() {
     })
 }
 
+
+/**
+ * Reads/Writes (50/50 load)
+ * The test consists on read an input file, and retrieve a vertex and update the properties of that vertex.
+ */
 function singleReadWrites() {
 
     let self = this;
@@ -249,7 +296,8 @@ function singleReadWrites() {
 
                 Promise.all(promiseArray).then(() => {
                     hrend[1] = process.hrtime(hrstart[1]);
-                    console.log('Single Read+Writes\t%ds %dms\t%d records\t%d records/s', hrend[1][0], hrend[1][1]/1000000, nproc[1], nproc[1]/(hrend[1][0] + hrend[1][1]/1000000000));
+                    console.log('Single Read+Writes\t%ds %dms\t%d records\t%d records/s',
+                        hrend[1][0], hrend[1][1]/1000000, nproc[1], nproc[1]/(hrend[1][0] + hrend[1][1]/1000000000));
                     session.close();
                     resolve();
                 });
@@ -257,6 +305,10 @@ function singleReadWrites() {
     })
 }
 
+/**
+ * Neighbors (1 hop)
+ * The test consists on read an input file, and ask for all the direct neighbors of a vertex.
+ */
 function neighbors() {
 
     let self = this;
@@ -281,20 +333,69 @@ function neighbors() {
                     promiseArray.push(
                         new Promise((resolve, reject) => {
                             /* Retrieve films */
-                            getFilms(directors[k], resolve, reject);
+                            getFilmsByDirector(directors[k], resolve, reject);
                         })
                     )
                 }
 
                 Promise.all(promiseArray).then(() => {
                     hrend[2] = process.hrtime(hrstart[2]);
-                    console.log('Neighbors\t%ds %dms\t%d records\t%d records/s', hrend[2][0], hrend[2][1]/1000000, nproc[2], nproc[2]/(hrend[2][0] + hrend[2][1]/1000000000));
+                    console.log('Neighbors\t%ds %dms\t%d records\t%d records/s',
+                        hrend[2][0], hrend[2][1]/1000000, nproc[2], nproc[2]/(hrend[2][0] + hrend[2][1]/1000000000));
                     session.close();
                     resolve(hrend - hrstart);
                 });
             })
     })
 
+}
+
+
+
+let array = [];
+
+function clean() {
+    hrstart = [];
+    hrend = [];
+    nproc = [0, 0, 0];
+}
+
+// Repeat a test case 'n' times
+function repeatTestCase(test, n) {
+    for (let i=0; i<n; i++) {
+        array.push(i);
+    }
+
+    doTestCase(test)
+        .then(result => {
+            session.close();
+            console.log('done!');
+        }, error => {
+            console.log('repeatTestCase [ERR] =>', error);
+        });
+}
+
+// Sync call a test case 'n' times
+// The test case must have finished to be call again
+function doTestCase(test) {
+
+    return new Promise((resolve, reject) => {
+        test()
+            .then(result => {
+                array.shift();
+                if (array.length > 0) {
+                    clean();
+                    return doTestCase(test).then(() => {
+                        resolve();
+                    });
+                } else {
+                    resolve();
+                }
+            }, error => {
+                console.log('doTestCase [ERR] => ', error)
+                error();
+            });
+    });
 }
 
 function doTest() {
@@ -308,7 +409,8 @@ function doTest() {
     nproc[2] = 0;
 
     /* single reading */
-    singleReads();
+    repeatTestCase(singleReads, 1);
+    // singleReads();
 
     /* single writing */
     //singleWrites();
