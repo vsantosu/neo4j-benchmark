@@ -21,7 +21,7 @@ var BenchmarkType = Enums.Test;
 
 // Parameters for test
 // const input = __dirname + '/../../data/directors-5000.csv';
-const input = __dirname + '/../../data/films-100k.csv';
+const input = __dirname + '/../../data/films-10k.csv';
 
 
 /**
@@ -43,6 +43,7 @@ class PerformanceBenchmarkNeo extends core {
         /* Initialize processed counter */
         this._nproc = 0;
         this._size = 0;
+        this._ctrl = 0;
         /* Initialize Neo4j driver */
         this.init();
 
@@ -82,8 +83,9 @@ class PerformanceBenchmarkNeo extends core {
      * Clean variables
      */
     clean() {
-        this._size = 0;
         this._nproc = 0;
+        this._size = 0;
+        this._ctrl = 0;
     }
 
     /**
@@ -116,7 +118,7 @@ class PerformanceBenchmarkNeo extends core {
         let self = this;
         /* CQL to extract films by name */
         // let query = "MATCH (f:Film) -[]-> () WHERE f.name = {name} RETURN f";
-        let query = "MATCH (f:Film {name: {name}}) RETURN f";
+        let query = "MATCH (f:Film {filmId: {name}}) RETURN f";
         /* Parameters for CQL */
         let param = {name: film};
         /* Results */
@@ -127,12 +129,14 @@ class PerformanceBenchmarkNeo extends core {
                 .subscribe({
                     onNext: function(record) {
                         // console.log('[%d] ==> ', self._nproc, record._fields);
-                        self._size += sizeof(record);
+                        let control = Number(record._fields[0].properties.control);
                         self._nproc++
+                        self._size += sizeof(record);
+                        self._ctrl  = Math.round((self._ctrl + control) * 100000000) / 100000000;
                     },
                     onCompleted: function(metadata) {
                         // console.log('onCompleted: ', metadata);
-                        resolve({nproc: self._nproc, size: self._size});
+                        resolve({nproc: self._nproc, size: self._size, ctrl: self._ctrl});
                     },
                     onError: function(error) {
                         console.log('SingleRead [ERR] ==> ', error);
@@ -168,7 +172,7 @@ class PerformanceBenchmarkNeo extends core {
                     // console.log(record);
                     self._size += sizeof(record);
                     self._nproc++
-                    resolve({nproc: self._nproc, size: self._size});
+                    resolve({nproc: self._nproc, size: self._size, ctrl: self._ctrl});
                 })
                 .catch(error => {
                     console.log('SingleWrite [ERR] ==> ', error);
@@ -202,7 +206,7 @@ class PerformanceBenchmarkNeo extends core {
                     // console.log(record);
                     self._size += sizeof(record);
                     self._nproc++
-                    resolve({nproc: self._nproc, size: self._size});
+                    resolve({nproc: self._nproc, size: self._size, ctrl: self._ctrl});
                 })
                 .catch(error => {
                     console.log('SingleReadWrite [ERR] ==> ', error);
@@ -240,7 +244,7 @@ class PerformanceBenchmarkNeo extends core {
                     },
                     onCompleted: function(metadata) {
                         // console.log('onCompleted: ', metadata);
-                        resolve({nproc: self._nproc, size: self._size});
+                        resolve({nproc: self._nproc, size: self._size, ctrl: self._ctrl});
                     },
                     onError: function(error) {
                         console.log('Neighbors [ERR] ==> ', error);
@@ -259,7 +263,7 @@ class PerformanceBenchmarkNeo extends core {
         /* This instance object reference */
         let self = this;
         /* Times to repeat a testcase */
-        let times = 5;
+        let times = 3;
 
         console.log('neo4j');
 

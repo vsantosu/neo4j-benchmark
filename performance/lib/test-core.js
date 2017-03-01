@@ -9,19 +9,23 @@
 
 /* import modules */
 const Promise = require("bluebird");
+const Enums = require('./enums');
 const csv = require('csv-parser');
 const fs = require('fs');
 
 // Parameters for test
-const input = __dirname + '/../../data/films-100k.csv';
+const DEFAULT_INPUT = __dirname + '/../../data/films-10k.csv';
 const times = 10;
 
+/* Performance Benchmars Types */
+var BenchmarkType = Enums.Test;
 
-/** Performance Benchmark implementation */
-class performanceBenchmark {
 
+/**
+ * Performance Benchmark Core class
+ */
+class PerformanceBenchmarkCore {
 
-    array = [];
 
     /**
      * Create a template object.
@@ -29,7 +33,15 @@ class performanceBenchmark {
      */
     constructor(param = {}) {
 
-        this._property = param.prop || 'someValue';
+        /* Input data file */
+        this._input = param.input || DEFAULT_INPUT;
+        /* Benchmark test to execute */
+        this._type = param.type || BenchmarkType.SINGLE_READ;
+        /* Controls the execution of the testcase */
+        this._control = [];
+
+        this._proc = 0;
+        this._time = 0;
     }
 
     /*========================= HELPER FUNCTIONS =======================*/
@@ -41,18 +53,33 @@ class performanceBenchmark {
     }
 
     /**
+     * Close session
+     */
+    close() {
+    }
+
+    test() {
+    }
+
+    /**
      * Repeat a test case `n` times
      * @param {function} test - Test to repeat
-     * @param {integer} n - Number of times the testcase is going to be repeated.
+     * @param {integer} n - Number of times the testcase is going to be repeated
      */
     repeatTestCase(test, n) {
+
+        /* This instance object reference */
+        let self = this;
+
         for (let i=0; i<n; i++) {
-            array.push(i);
+            self._control.push(i);
         }
 
-        doTestCase(test)
+        self.doTestCase(test)
             .then(result => {
-                session.close();
+                /* close session */
+                self.close();
+                console.log('\t avg: %d', self._proc/self._time)
                 console.log('done!');
             }, error => {
                 console.log('repeatTestCase [ERR] =>', error);
@@ -66,13 +93,21 @@ class performanceBenchmark {
      */
     doTestCase(test) {
 
+        /* This instance object reference */
+        let self = this;
+
         return new Promise((resolve, reject) => {
-            test()
+            self.testWrapper(test)
                 .then(result => {
-                    array.shift();
-                    if (array.length > 0) {
-                        clean();
-                        return doTestCase(test).then(() => {
+                    /* Move to next call in the queue */
+                    self._control.shift();
+                    /* Accumulate stats */
+                    self._proc += result.processed;
+                    self._time += result.time;
+                    /* Check if there are more calls enqueued */
+                    if (self._control.length > 0) {
+                        self.clean();
+                        return self.doTestCase(test).then((result) => {
                             resolve();
                         });
                     } else {
@@ -80,7 +115,7 @@ class performanceBenchmark {
                     }
                 }, error => {
                     console.log('doTestCase [ERR] => ', error)
-                    error();
+                    reject(error);
                 });
         });
     }
@@ -88,45 +123,66 @@ class performanceBenchmark {
     /*======================== PERFORMANCE TESTS =======================*/
 
     /**
-     * Single Reads.
-     * The test consists on open an input file, and read a single vertex (and all its properties) by accessing the vertex
-     * using an index.
+     * Test wrapper.
+     * @param {String} label - Label of test to be executed.
      */
-    executeTest(test) {
+    testWrapper(label) {
 
+        /* This instance object reference */
         let self = this;
+        /* Keys retrieved from the input file */
         let keys = [];
+        /* Promises collection of graph db driver call */
         let promiseArray = [];
-
+        /* Start, end time of processing */
         let hrstart, hrend;
+        /* Total of records processed */
+        let total=0, size=0, ctrl=0;
 
         return new Promise((resolve, reject) => {
 
-            fs.createReadStream(input)
+            let column;
+            fs.createReadStream(self._input)
                 .pipe(csv({separator: ','}))
+                .on('headers', function (headerList) {
+                    column = headerList[0]
+                })
                 .on('data', function(data) {
-                    // console.log('-->', data.name);
-                    names.push(data.name);
+                    // console.log('-->', data[column]);
+                    keys.push(data[column]);
                 })
                 .on('end', function() {
-                    // console.log('----> end');
                     hrstart = process.hrtime();
 
                     for (let k in keys) {
                         promiseArray.push(
                             new Promise((resolve, reject) => {
                                 /* execute specific test */
-                                test(keys[k], resolve, reject);
+                                self.test(k, keys[k], resolve, reject);
                             })
                         )
                     }
 
-                    Promise.all(promiseArray).then(() => {
-                        hrend = process.hrtime(hrstart);
-                        console.log('Single Reads\t%ds %dms\t%d records\t%d records/s',
-                            hrend[0], hrend[1]/1000000, nproc[0], nproc[0]/(hrend[0][0] + hrend[1]/1000000000));
-                        resolve();
-                    });
+                    Promise.all(promiseArray)
+                        .then(count => {
+                            hrend = process.hrtime(hrstart);
+                            total = count[count.length-1].nproc;
+                            size = count[count.length-1].size;
+                            ctrl = count[count.length-1].ctrl;
+
+                            /* Print output */
+                            console.log(
+                                '%s\t%ds %dms\t%d records\t%d records/s\t%d bytes\t%d bytes/call\t%d bytes/s\t%d',
+                                label, hrend[0], hrend[1]/1000000,
+                                total, total/(hrend[0] + hrend[1]/1000000000),
+                                size, size/total, size/(hrend[0] + hrend[1]/1000000000),
+                                ctrl);
+                            resolve({processed: total, time: hrend[0] + hrend[1]/1000000000});
+                        })
+                        .catch(error => {
+                            console.log('Error while executing ... ', label);
+                            reject(error);
+                        });
                 })
         });
 
@@ -137,4 +193,4 @@ class performanceBenchmark {
 
 
 /* exporting the module */
-module.exports = performanceBenchmark;
+module.exports = PerformanceBenchmarkCore;
