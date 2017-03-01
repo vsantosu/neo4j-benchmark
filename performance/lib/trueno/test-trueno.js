@@ -11,6 +11,7 @@
 const Promise = require("bluebird");
 const sizeof = require('sizeof').sizeof;
 const Trueno = require('trueno-javascript-driver');
+const Socket = require('socket.io-client');
 const Enums = require('../enums');
 const core = require('../test-core');
 const fs = require('fs');
@@ -24,9 +25,23 @@ var BenchmarkType = Enums.Test;
 
 // Parameters for test
 /* input for test1 */
-const input = __dirname + '/../../data/films-10k.csv';
-
+const input = __dirname + '/../../data/films-50k.csv';
+/* max number of request */
 var limit = 100000000;
+
+// Variables needed for establish the socket connection
+var connectionOptions =  {
+    "force new connection" : true,
+    "reconnection": true,
+    "reconnectionDelay": 2000,                  //starts with 2 secs delay, then 4, 6, 8, until 60 where it stays forever until it reconnects
+    "reconnectionDelayMax" : 60000,             //1 minute maximum delay between connections
+    "reconnectionAttempts": "Infinity",         //to prevent dead clients, having the user to having to manually reconnect after a server restart.
+    "timeout" : 10000,                           //before connect_error and connect_timeout are emitted.
+    "transports" : ["websocket"]                //forces the transport to be only websocket. Server needs to be setup as well/
+}
+
+var socket = Socket('http://localhost:8007',connectionOptions);
+
 
 /**
  * Performance Benchmark implementation for Trueno.
@@ -133,23 +148,16 @@ class PerformanceBenchmarkTrueno extends core {
 
         return new Promise(() => {
 
-            // if (self._counter % 100 == 0) console.log('--> %d ** %d <-- %d <--> %s', self._nproc, self._counter, limit, film);
-
             if (++self._counter <= limit) {
                 result
                     .then(result => {
                         // console.log('[%d] ==> ', self._nproc, result);
                         for (let k in result) {
-                            let control = Number(result[k].getProperty('control')) || 0;
+                            let control = Number(result[k].getProperty('control'));
                             self._ctrl  = Math.round((self._ctrl + control) * 100000000) / 100000000;
                             // console.log('[%d] ==> ', self._nproc, control, self._ctrl, result[k]);
                         }
-                        // result.forEach(v => {
-                        //     let control = v.getProperty('control');
-                        //     self._ctrl  = Math.round((self._ctrl + control) * 100000000) / 100000000;
-                        // });
 
-                        // if (self._nproc % 100 == 0) console.log('[%d] ==> ', self._nproc, self._counter);
                         self._nproc++;
                         self._size += sizeof(result);
                         resolve({nproc: self._nproc, size: self._size, ctrl: self._ctrl});
@@ -160,6 +168,47 @@ class PerformanceBenchmarkTrueno extends core {
                     });
             } else {
                 resolve({nproc: self._nproc, size: self._size})
+            }
+        });
+    }
+
+    /**
+     * Single Reads.
+     * The test consists on open an input file, and read a single vertex (and all its properties) by accessing the vertex
+     * using an index.
+     * @param film
+     * @param resolve
+     * @param reject
+     */
+    singleReadSocketTest(id, film, resolve, reject) {
+
+        /* This instance object reference */
+        let self = this;
+        /* Query for filtering vertices */
+        let q = "{\"term\":{\"prop.filmId\":\"" + film + "\"}}";
+
+        return new Promise(() => {
+
+            if (++self._counter <= limit) {
+                /* the payload object */
+                var payload = {
+                    '@class': 'SearchObject',
+                    query: q,
+                    index: dbName,
+                    type: "v",
+                    size: 1000
+                };
+
+                /* adding the payload */
+                socket.emit('search', payload, function(results) {
+                    // console.log('[%d] ==> ', self._nproc, self._ctrl, results.prop.control, results);
+                    let control = Number(results.prop.control);
+                    self._ctrl  = Math.round((self._ctrl + control) * 100000000) / 100000000;
+
+                    self._nproc++;
+                    self._size += sizeof(results);
+                    resolve({nproc: self._nproc, size: self._size, ctrl: self._ctrl});
+                });
             }
         });
     }
@@ -343,7 +392,8 @@ class PerformanceBenchmarkTrueno extends core {
             /* Single Read */
             default:
             case BenchmarkType.SINGLE_READ:
-                self.test = self.singleReadTest;
+                //self.test = self.singleReadTest;
+                self.test = self.singleReadSocketTest;
                 self.repeatTestCase('Single Reads', times);
                 break;
         }

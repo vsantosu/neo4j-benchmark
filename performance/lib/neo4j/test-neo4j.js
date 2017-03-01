@@ -21,7 +21,7 @@ var BenchmarkType = Enums.Test;
 
 // Parameters for test
 // const input = __dirname + '/../../data/directors-5000.csv';
-const input = __dirname + '/../../data/films-10k.csv';
+const input = __dirname + '/../../data/films-50k.csv';
 
 
 /**

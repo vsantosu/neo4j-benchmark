@@ -77,10 +77,10 @@ class PerformanceBenchmarkCore {
 
         self.doTestCase(test)
             .then(result => {
-                /* close session */
-                self.close();
                 console.log('\t avg: %d', self._proc/self._time)
                 console.log('done!');
+                /* close session */
+                self.close();
             }, error => {
                 console.log('repeatTestCase [ERR] =>', error);
             });
