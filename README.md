@@ -87,7 +87,9 @@ Neo4j Spark Connector offers Spark-2.0 APIs for RDD, **DataFrame**, **GraphX** a
 
 ----------
 
-# 2. Performance Benchmarks
+# 2. Performance Benchmarks (REST client)
+
+Trueno access ElasticSearch Backend via a REST (http) connection. The REST connection incurs on some overhead and latency.
 
 |	GraphDB | Single Reads (records/secs)	| Single Writes (records/secs) | Reads/Write	(records/secs) | Neighbors (records/secs) |
 | --------| ------------- |-------------| ----------- | ---------- |
@@ -106,7 +108,7 @@ Read vertices (and all its properties).
 | Trueno	| 10000             | 1306.39795  | 
 | Neo4j	  | 20000             | 4735.013766 | 
 
-**Neo4j** is **3.6 faster** than Trueno reading.
+**Neo4j** is **3.6 times faster** than Trueno reading.
 
 ## Single Writes
 Create vertices. In case of Trueno, the load was reduced since the server could not handle more than 10000 vertices.
@@ -126,7 +128,7 @@ Retrieve a vertex, and set/update a property. In case of Trueno, the load was re
 | Trueno	| 10000             | 1306.39795  | 
 | Neo4j	  | 20000             | 4735.013766 | 
 
-**Neo4j** is **12 faster** than Trueno reading/writing.
+**Neo4j** is **12 times faster** than Trueno reading/writing.
 
 ## Neighbors
 Ask for all the direct neighbors of a vertex. In case of Trueno, the load was reduced since the server could not handle more than 500 concurrent request for neighbors. Also, Trueno needed two operations (calls) to accomplish this test instead of one (Neo4j)
@@ -136,10 +138,29 @@ Ask for all the direct neighbors of a vertex. In case of Trueno, the load was re
 | Trueno	| 500               | 233.47421   | 
 | Neo4j	  | 20000             | 10307.98849 | 
 
-**Neo4j** is **44 faster** than Trueno finding the direct neighbors of vertices.
+**Neo4j** is **44 times faster** than Trueno finding the direct neighbors of vertices.
 
 ----------
-# 3. Batch Write Benchmarks
+# 3. Performance Benchmarks (Native client)
+
+Trueno access ElasticSearch Backend via a tunelling bridge (socket), which establish a connection with the backend using a native driver (Java). 
+
+<p align="left">
+  <img src="https://raw.githubusercontent.com/mastayoda/neo4j-benchmark/master/assets/images/trueno_neo-performance-2-native.png">
+</p>
+
+## Single Reads
+Read vertices (and all its properties).
+
+|	GraphDB | Input (vertices)	| Time (secs) | Throughput (records/secs) | 
+| --------| ----------------- |------------ | -------------| 
+| Trueno	| 50000             | 32.21       |  1552.1881   | 
+| Neo4j	  | 50000             | 15.27       |  3272.2387   | 
+
+**Neo4j** is **2 times faster** than Trueno reading.
+
+----------
+# 4. Batch Write Benchmarks
 
 In this experiment, we inserted the movies dataset in batches of 300 components until completion. We ran separate inserts(for vertices and edges).
 
