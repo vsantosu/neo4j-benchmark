@@ -89,6 +89,9 @@ TruenoDB takes a little bit longer when requesting a job to the spark engine (Sp
 | TruenoDB + Spark + ES - Vertices  |      1181.75172     | 
 | TruenoDB + Spark + ES - Edges     |      4484.230697    | 
 
+<p align="left">
+  <img height="400" src="https://raw.githubusercontent.com/mastayoda/neo4j-benchmark/master/assets/images/trueno_neo4j_compute_es_plot.png">
+</p>
 
 # References
 * [1] https://neo4j.com/blog/using-apache-spark-neo4j-big-data-graph-analytics/
