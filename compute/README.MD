@@ -96,4 +96,8 @@ TruenoDB takes a little bit longer when requesting a job to the spark engine (Sp
 # References
 * [1] https://neo4j.com/blog/using-apache-spark-neo4j-big-data-graph-analytics/
 * [2] https://neo4j.com/developer/apache-spark/
+* [3] https://www.elastic.co/guide/en/elasticsearch/hadoop/master/spark.html
+* [4] https://www.elastic.co/guide/en/elasticsearch/hadoop/master/configuration.html
+* [5] https://www.elastic.co/guide/en/elasticsearch/hadoop/current/install.html
+ 
 
