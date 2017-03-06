@@ -263,7 +263,7 @@ class PerformanceBenchmarkNeo extends core {
         /* This instance object reference */
         let self = this;
         /* Times to repeat a testcase */
-        let times = 3;
+        let times = 5;
 
         console.log('neo4j');
 

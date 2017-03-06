@@ -16,6 +16,7 @@ const Enums = require('../enums');
 const core = require('../test-core');
 const fs = require('fs');
 
+// const dbName = 'movies';
 const dbName = 'films';
 // const dbName = 'benchmark';
 const host  = 'http://localhost';
@@ -25,7 +26,7 @@ var BenchmarkType = Enums.Test;
 
 // Parameters for test
 /* input for test1 */
-const input = __dirname + '/../../data/films-50k.csv';
+const input = __dirname + '/../../data/films-10k.csv';
 /* max number of request */
 var limit = 100000000;
 
@@ -89,11 +90,11 @@ class PerformanceBenchmarkTrueno extends core {
         self._trueno
             .connect(s => {
                 /* Open trueno database instance */
-                self._g.open()
-                    .then((result) => {
+                // self._g.open()
+                //     .then((result) => {
                         /* execute test cases */
                         self.doTest();
-                    });
+                    // });
         }, s => {
             console.log('disconnected from [%s]', dbName);
             process.exit();
@@ -135,14 +136,14 @@ class PerformanceBenchmarkTrueno extends core {
      * @param resolve
      * @param reject
      */
-    singleReadTest(id, film, resolve, reject) {
+    singleReadRESTTest(id, film, resolve, reject) {
 
         /* This instance object reference */
         let self = this;
         /* Set filter for vertices */
         let filter = self._g.filter()
             .term('prop.filmId', film)
-            // .match('label', 'Film');
+        // .match('label', 'Film');
         /* Results */
         let result = self._g.fetch('v', filter);
 
@@ -150,16 +151,15 @@ class PerformanceBenchmarkTrueno extends core {
 
             if (++self._counter <= limit) {
                 result
-                    .then(result => {
-                        // console.log('[%d] ==> ', self._nproc, result);
-                        for (let k in result) {
-                            let control = Number(result[k].getProperty('control'));
-                            self._ctrl  = Math.round((self._ctrl + control) * 100000000) / 100000000;
-                            // console.log('[%d] ==> ', self._nproc, control, self._ctrl, result[k]);
-                        }
+                    .then(results => {
+                        // console.log('[%d] ==> ', self._nproc, self._ctrl, results[0]._prop.control);
+
+                        /* The query must return always one vertex */
+                        let control = Number(results[0]._prop.control);
+                        self._ctrl  = Math.round((self._ctrl + control) * 100000000) / 100000000;
 
                         self._nproc++;
-                        self._size += sizeof(result);
+                        self._size += sizeof(results);
                         resolve({nproc: self._nproc, size: self._size, ctrl: self._ctrl});
                     })
                     .catch(error => {
@@ -174,6 +174,51 @@ class PerformanceBenchmarkTrueno extends core {
 
     /**
      * Single Reads.
+     * The test consists on open an input file, and read a single vertex (and all its properties) by accessing the vertex
+     * using an index.
+     * @param film
+     * @param resolve
+     * @param reject
+     */
+    singleReadNativeTest(id, film, resolve, reject) {
+
+        /* This instance object reference */
+        let self = this;
+        /* Set filter for vertices */
+        let filter = self._g.filter()
+            .term('prop.filmId', film)
+            // .match('label', 'Film');
+        /* Results */
+        let result = self._g.fetch('v', filter);
+
+        return new Promise(() => {
+
+            if (++self._counter <= limit) {
+                result
+                    .then(results => {
+
+                        //console.log('[%d] ==> ', self._nproc, self._ctrl, results[0]._prop.control);
+
+                        /* The query must return always one vertex */
+                        let control = Number(results[0]._prop.control);
+                        self._ctrl  = Math.round((self._ctrl + control) * 100000000) / 100000000;
+
+                        self._nproc++;
+                        self._size += sizeof(results);
+                        resolve({nproc: self._nproc, size: self._size, ctrl: self._ctrl});
+                    })
+                    .catch(error => {
+                        console.log('ERR ==> ', error);
+                        reject(error);
+                    });
+            } else {
+                resolve({nproc: self._nproc, size: self._size})
+            }
+        });
+    }
+
+    /**
+     * Single Reads using Native ElasticSearch driver throught socket connection .
      * The test consists on open an input file, and read a single vertex (and all its properties) by accessing the vertex
      * using an index.
      * @param film
@@ -203,6 +248,48 @@ class PerformanceBenchmarkTrueno extends core {
                 socket.emit('search', payload, function(results) {
                     // console.log('[%d] ==> ', self._nproc, self._ctrl, results.prop.control, results);
                     let control = Number(results.prop.control);
+                    self._ctrl  = Math.round((self._ctrl + control) * 100000000) / 100000000;
+
+                    self._nproc++;
+                    self._size += sizeof(results);
+                    resolve({nproc: self._nproc, size: self._size, ctrl: self._ctrl});
+                });
+            }
+        });
+    }
+
+    /**
+     * Single Reads using Native ElasticSearch driver throught socket connection .
+     * The test consists on open an input file, and read a single vertex (and all its properties) by accessing the vertex
+     * using an index.
+     * @param film
+     * @param resolve
+     * @param reject
+     */
+    singleReadSocket5Test(id, film, resolve, reject) {
+
+        /* This instance object reference */
+        let self = this;
+        /* Query for filtering vertices */
+        let q = "{\"term\":{\"filmId\":\"" + film + "\"}}";
+
+        return new Promise(() => {
+
+            if (++self._counter <= limit) {
+                /* the payload object */
+                var payload = {
+                    '@class': 'SearchObject',
+                    query: q,
+                    index: dbName,
+                    type: "v",
+                    key: film,
+                    size: 60
+                };
+
+                /* adding the payload */
+                socket.emit('search', payload, function(results) {
+                    // console.log('[%d] ==> ', self._nproc, self._ctrl, results, results);
+                    let control = Number(results._source.control);
                     self._ctrl  = Math.round((self._ctrl + control) * 100000000) / 100000000;
 
                     self._nproc++;
@@ -254,7 +341,6 @@ class PerformanceBenchmarkTrueno extends core {
         });
 
     }
-
 
     /**
      * Reads/Writes (50/50 load)
@@ -330,7 +416,7 @@ class PerformanceBenchmarkTrueno extends core {
         let self = this;
         /* Set filter for vertices */
         let filter = self._g.filter()
-            .term('prop.name', director);
+            .term('prop.filmId', film);
         /* Results */
         let result = self._g.fetch('v', filter);
 
@@ -358,6 +444,62 @@ class PerformanceBenchmarkTrueno extends core {
     }
 
     /**
+     * Neighbors (1 hop) using Native ElasticSearch driver throught socket connection .
+     * The test consists on open an input file, and read a single vertex (and all its properties) by accessing the vertex
+     * using an index.
+     * @param film
+     * @param resolve
+     * @param reject
+     */
+    neighborsSocketTest(id, film, resolve, reject) {
+
+        /* This instance object reference */
+        let self = this;
+        /* Query for filtering vertices */
+        let q1 = "{\"term\":{\"prop.filmId\":\"" + film + "\"}}";
+
+        return new Promise(() => {
+
+            if (++self._counter <= limit) {
+                /* the payload object */
+                let payload1 = {
+                    '@class': 'SearchObject',
+                    query: q1,
+                    index: dbName,
+                    type: "v",
+                    size: 1000
+                };
+
+                /* adding the payload */
+                socket.emit('search', payload1, function(results) {
+                    // console.log('[%d] ==> ', self._nproc, self._ctrl, results.prop.control, results);
+                    let id = Number(results.prop.id);
+                    let q2 = '{\"match_all\":{}},\"filter\":{\"filterjoin\":{\"id\":{\"indices\":[\"films\"],\"types\"' +
+                             ':[\"e\"],\"path\":\"target\",\"query\":{\"query\":{\"filtered\":{\"filter\":{\"term\":{\"source\":' + id + '}}}}}}}}}';
+
+                    /* the payload object */
+                    let payload2 = {
+                        '@class': 'SearchObject',
+                        query: q2,
+                        index: dbName,
+                        type: "v",
+                        size: 1000
+                    };
+
+                    /* adding the payload */
+                    socket.emit('search', payload2, function(results2) {
+                        console.log('[%d] ==> neighbors of [%s] \n', self._nproc, film, results2);
+                        self._nproc++;
+                        self._size += sizeof(results2);
+                        resolve({nproc: self._nproc, size: self._size, ctrl: self._ctrl});
+                    });
+
+                });
+            }
+        });
+    }
+
+    /**
      * Execute Test
      */
     doTest() {
@@ -365,7 +507,7 @@ class PerformanceBenchmarkTrueno extends core {
         /* This instance object reference */
         let self = this;
         /* Times to repeat a testcase */
-        let times = 3;
+        let times = 5;
 
         console.log('trueno');
 
@@ -373,7 +515,8 @@ class PerformanceBenchmarkTrueno extends core {
 
             /* Neighbors */
             case BenchmarkType.NEIGHBORS:
-                self.test = self.neighborsTest;
+                // self.test = self.neighborsTest;
+                self.test = self.neighborsSocketTest;
                 self.repeatTestCase('Neighbors', times);
                 break;
 
@@ -392,8 +535,9 @@ class PerformanceBenchmarkTrueno extends core {
             /* Single Read */
             default:
             case BenchmarkType.SINGLE_READ:
-                //self.test = self.singleReadTest;
-                self.test = self.singleReadSocketTest;
+                self.test = self.singleReadNativeTest;
+                //self.test = self.singleReadSocketTest;
+                // self.test = self.singleReadSocket5Test;
                 self.repeatTestCase('Single Reads', times);
                 break;
         }
