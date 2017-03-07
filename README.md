@@ -143,7 +143,12 @@ Ask for all the direct neighbors of a vertex. In case of Trueno, the load was re
 ----------
 # 3. Performance Benchmarks (Native client)
 
-Trueno access ElasticSearch Backend via a tunelling bridge (socket), which establish a connection with the backend using a native driver (Java). 
+This benchmark compares the single read performance of the following configurations:
+
+* **Trueno (REST)**. Current configuration, where data is retrieved from the ElasticSearch backend using a REST connection.
+* **Trueno (Navite node.js)**. Trueno access ElasticSearch Backend via a tunelling bridge (socket), which establish a connection with the backend using a native driver (Java). 
+* **Trueno (Native direct)**. Similar to the previous case, but the test retrieved the data from the ElasticSearch backend directly from the Bridge Server (Native ElasticSearch API), without using the Trueno websocket. The connection does not incurr on pre-processing and post-processing done by Trueno. 
+* **Neo4j**. Neo4j standalone configuration.
 
 <p align="left">
   <img src="https://raw.githubusercontent.com/mastayoda/neo4j-benchmark/master/assets/images/trueno_neo-performance-2-native.png">
@@ -154,8 +159,10 @@ Read vertices (and all its properties).
 
 |	GraphDB | Input (vertices)	| Time (secs) | Throughput (records/secs) | 
 | --------| ----------------- |------------ | -------------| 
-| Trueno	| 50000             | 32.21       |  1552.1881   | 
-| Neo4j	  | 50000             | 15.27       |  3272.2387   | 
+| Trueno (REST)	          | 10000\*             | 63.67       |  157.0244    | 
+| Trueno (Native node.js) | 10000\*             | 54.77       |  182.5335    | 
+| Trueno (Native direct)	| 50000               | 44.42       |  1125.4294   | 
+| Neo4j	                  | 50000               | 24.16       |  2068.9127   | 
 
 **Neo4j** is **2 times faster** than Trueno reading.
 
