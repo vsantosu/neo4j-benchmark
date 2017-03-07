@@ -147,7 +147,7 @@ This benchmark compares the single read performance of the following configurati
 
 * **Trueno (REST)**. Current configuration, where data is retrieved from the ElasticSearch backend using a REST connection.
 * **Trueno (Navite node.js)**. Trueno access ElasticSearch Backend via a tunelling bridge (socket), which establish a connection with the backend using a native driver (Java). 
-* **Trueno (Native direct)**. Similar to the previous case, but the test retrieved the data from the ElasticSearch backend directly from the Bridge Server (Native ElasticSearch API), without using the Trueno websocket. The connection does not incurr on pre-processing and post-processing done by Trueno. 
+* **Trueno (Native direct)**. Similar to the previous case, but the test retrieved the data from the ElasticSearch backend directly from the Bridge Server (Native ElasticSearch API), without using the Trueno websocket (basically, we bypassed Trueno). The connection does not incurr on pre-processing and post-processing done by Trueno. 
 * **Neo4j**. Neo4j standalone configuration.
 
 <p align="left">
@@ -163,6 +163,8 @@ Read vertices (and all its properties).
 | Trueno (Native node.js) | 10000\*             | 54.77       |  182.5335    | 
 | Trueno (Native direct)	| 50000               | 44.42       |  1125.4294   | 
 | Neo4j	                  | 50000               | 24.16       |  2068.9127   | 
+
+\* *The test could not be performed using a larger dataset due a timeout on the connection.*
 
 **Neo4j** is **2 times faster** than Trueno reading.
 
