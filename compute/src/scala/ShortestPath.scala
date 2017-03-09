@@ -126,6 +126,9 @@ object ShortestPath extends SparkJob {
     val strOrigin = config.getString("origin.string")
     val strDestination = config.getString("destination.string")
 
+    /* Benchmark Cassandra Read */
+    val t0 = System.nanoTime()
+
     /* Get table from keyspace and stored as rdd */
     val vertexRDD1: RDD[(VertexId, String)] = sc.cassandraTable(schema, strVerticesTable)
 
@@ -142,21 +145,35 @@ object ShortestPath extends SparkJob {
 
     val vertexSet = VertexRDD(vertexRDD1)
 
+    /* End Benchmark Cassandra Read */
+    val t1 = System.nanoTime()
+
     /* Build the initial Graph */
     val graph = Graph(vertexSet, edgesRDD)
 
-    val vidDestination: VertexId = strDestination.toLong
-    val vidOrigin: VertexId = strOrigin.toLong
+    /*val vidDestination: VertexId = strDestination.toLong
+    val vidOrigin: VertexId = strOrigin.toLong*/
 
-    val result = ShortestPaths.run(graph, Seq(vidDestination))
+    /* Benchmark ShortestPath computation time */
+    val t2 = System.nanoTime()
 
+    val result = ShortestPaths.run(graph, vertexSet)
+    //val result = ShortestPaths.run(graph, Seq(vidDestination))
+
+    /* End Benchmark ShortestPath computation time */
+    val t3 = System.nanoTime()
+
+    println("Loading data into cassandra: " + (t1-t0) + "ns")
+    println("ShortestPath computation: " + (t3-t2) + "ns")
+
+    /*
     val shortestPath = result               // result is a graph
       .vertices                             // we get the vertices RDD
       .filter({case(vId, _) => vId == vidOrigin})  // we filter to get only the shortest path from v1
       .first                                // there's only one value
       ._2                                   // the result is a tuple (v1, Map)
       .get(vidDestination)                              // we get its shortest path to v2 as an Option object
-
+      */
   }//runJob
 
 }//TruenoPRPersisted object
