@@ -151,7 +151,7 @@ This benchmark compares the single read performance of the following configurati
 * **Neo4j**. Neo4j standalone configuration.
 
 <p align="left">
-  <img src="https://raw.githubusercontent.com/mastayoda/neo4j-benchmark/master/assets/images/trueno_neo-performance-2-native.png">
+  <img src="https://raw.githubusercontent.com/mastayoda/neo4j-benchmark/master/assets/images/trueno_neo-performance-3-native.png">
 </p>
 
 ## Single Reads
@@ -159,14 +159,14 @@ Read vertices (and all its properties).
 
 |	GraphDB | Input (vertices)	| Time (secs) | Throughput (records/secs) | 
 | --------| ----------------- |------------ | -------------| 
-| Trueno (REST)	          | 10000\*             | 63.67       |  157.0244    | 
-| Trueno (Native node.js) | 10000\*             | 54.77       |  182.5335    | 
-| Trueno (Native direct)	| 50000               | 44.42       |  1125.4294   | 
-| Neo4j	                  | 50000               | 24.16       |  2068.9127   | 
+| Trueno (REST)	          | 10000\*             | 53.18       |  187.9857    | 
+| Trueno (Native node.js) | 10000\*             | 39.78       |  251.3170    | 
+| Trueno (Native direct)	| 50000               | 40.38       |  1237.9181   | 
+| Neo4j	                  | 50000               | 14.01       |  3570.9264   | 
 
 \* *The test could not be performed using a larger dataset due a timeout on the connection.*
 
-**Neo4j** is **2 times faster** than Trueno reading.
+**Neo4j** is **3 times faster** than Trueno reading.
 
 ----------
 # 4. Batch Write Benchmarks
