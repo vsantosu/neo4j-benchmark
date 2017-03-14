@@ -1,0 +1,19 @@
+{
+  "name": "trueno-elasticsearch-bridge",
+  "version": "1.0.0",
+  "description": "",
+  "main": "write.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "bluebird": "^3.4.7",
+    "csv-parser": "^1.11.0",
+    "jsonpack": "^1.1.5",
+    "msgpack5": "^3.4.1",
+    "progress": "^1.1.8",
+    "uws": "^0.13.0"
+  }
+}
