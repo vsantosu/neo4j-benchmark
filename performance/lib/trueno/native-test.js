@@ -13,8 +13,8 @@ const Trueno = require('trueno-javascript-driver');
 const csv = require('csv-parser');
 const fs = require('fs');
 
-// const dbName = 'movies';
-const dbName = 'benchmark';
+ const dbName = 'movies';
+//const dbName = 'benchmark';
 const host  = 'http://localhost';
 
 /* Instantiate connection */
@@ -26,7 +26,7 @@ var counter =0;
 var limit = 100000000;
 
 /* input for test1 */
-const input = __dirname + '/../../data/directors-10000.csv';
+const input = __dirname + '/../../data/directors-5000.csv';
 
 
 let hrstart = [];
@@ -53,7 +53,7 @@ function getDirector(director, resolve, reject) {
         if(++counter <= limit){
             g.fetch('v', filter)
                 .then(result => {
-                    //console.log(result);
+                   
                     nproc[0]++;
                     resolve();
                 })
@@ -336,10 +336,10 @@ function doTest() {
     nproc[2] = 0;
 
     /* single reading */
-    // singleReads();
+    singleReads();
 
     /* single writing */
-    singleWrites();
+    //singleWrites();
 
     /* single reading/writing */
     // singleReadWrites();
@@ -356,13 +356,15 @@ trueno.connect(s => {
     g = trueno.Graph();
     g.setLabel(dbName);
 
-    /* Open trueno database instance */
-    g.open().then( (result) => {
-        /* execute test cases */
-        doTest();
-    });
+    console.log('connection stablished');
+    doTest();
+
+    // /* Open trueno database instance */
+    // g.open().then( (result) => {
+    //     /* execute test cases */
+    //     doTest();
+    // });
 
 }, s => {
     console.log('disconnected: ', dbName);
 });
-
