@@ -20,18 +20,20 @@ const Promise = require("bluebird");
 var Socket = require("uws");
 const fs = require("fs");
 
-var connectionOptions =  {
-    "force new connection" : true,
-    "reconnection": true,
-    "reconnectionDelay": 2000,                  //starts with 2 secs delay, then 4, 6, 8, until 60 where it stays forever until it reconnects
-    "reconnectionDelayMax" : 60000,             //1 minute maximum delay between connections
-    "reconnectionAttempts": "Infinity",         //to prevent dead clients, having the user to having to manually reconnect after a server restart.
-    "timeout" : 10000,                           //before connect_error and connect_timeout are emitted.
-    "transports" : ["websocket"]                //forces the transport to be only websocket. Server needs to be setup as well/
-};
+// var connectionOptions =  {
+//     "force new connection" : true,
+//     "reconnection": true,
+//     "reconnectionDelay": 2000,                  //starts with 2 secs delay, then 4, 6, 8, until 60 where it stays forever until it reconnects
+//     "reconnectionDelayMax" : 60000,             //1 minute maximum delay between connections
+//     "reconnectionAttempts": "Infinity",         //to prevent dead clients, having the user to having to manually reconnect after a server restart.
+//     "timeout" : 10000,                           //before connect_error and connect_timeout are emitted.
+//     "transports" : ["websocket"]                //forces the transport to be only websocket. Server needs to be setup as well/
+// };
 
-/* socket.io */
-var socket = Socket('http://localhost:8007',connectionOptions);
+/* websocket */
+var ws = new Socket('ws://localhost:8008');
+
+var callbacks = {};
 
 /* variables to keep track of batches and progress */
 var limit = 10000000;
@@ -81,17 +83,23 @@ function bulkESRequest(operations) {
         if(++counter <= limit){
 
             /* the payload object */
-            var payload = {
-                '@class': 'BulkObject',
+            var internal = {
                 index: indexName,
                 operations: operations
             };
+            var payload = {
+                callbackIndex: 'bulk1',
+                action: "bulk",
+                object: internal
+            };
 
             /* sending the payload */
-            socket.emit('bulk', payload, function(results) {
+            ws.send(JSON.stringify(payload));
+            /* adding callback */
+            callbacks['bulk1'] = function(){
                 total++;
                 resolve();
-            });
+            };
         }
     });
 
@@ -213,7 +221,7 @@ function buildBulkOperations(b, reject) {
 
                 /* adding operations */
                 arrOperations.push(["index",e.content.type,e.content.obj.id.toString(),
-                                    JSON.stringify(e.content.obj._prop)]);
+                                    JSON.stringify(e.content.obj)]);
 
                 break;
             case 'ex_destroy':
@@ -282,17 +290,27 @@ function buildVerticesFromJSON(){
     insertDeleteVertices(vQueue.splice(0, batchSize),strRequest);
 }
 
-/* on connection to the Server for elastic search */
-socket.on('connect', function(){
+ws.on('open', function open() {
     console.log('connected');
-
     console.time("time");
 
     /* start bulk read and request to socket server */
     buildVerticesFromJSON();
-
 });
 
-socket.on('disconnect', function(){
-    console.log('disconnected');
+ws.on('error', function error() {
+    console.log('Error connecting!');
+});
+
+ws.on('message', function(data, flags) {
+    var obj = JSON.parse(data);
+    //console.log(obj);
+    /* invoke the callback */
+    callbacks[obj.callbackIndex]();
+
+    process.stdout.write('.');
+});
+
+ws.on('close', function(code, message) {
+    console.log('Disconnection: ' + code + ', ' + message);
 });

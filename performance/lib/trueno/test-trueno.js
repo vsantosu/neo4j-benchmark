@@ -16,8 +16,8 @@ const Enums = require('../enums');
 const core = require('../test-core');
 const fs = require('fs');
 
-// const dbName = 'movies';
 const dbName = 'films';
+// const dbName = 'citations';
 // const dbName = 'benchmark';
 const host  = 'http://localhost';
 
@@ -26,7 +26,7 @@ var BenchmarkType = Enums.Test;
 
 // Parameters for test
 /* input for test1 */
-const input = __dirname + '/../../data/films-10k.csv';
+const input = __dirname + '/../../data/films-50k.csv';
 /* max number of request */
 var limit = 100000000;
 
@@ -41,8 +41,7 @@ var connectionOptions =  {
     "transports" : ["websocket"]                //forces the transport to be only websocket. Server needs to be setup as well/
 }
 
-var socket = Socket('http://localhost:8007',connectionOptions);
-
+var socket = Socket('http://localhost:8009',connectionOptions);
 
 /**
  * Performance Benchmark implementation for Trueno.
@@ -83,22 +82,22 @@ class PerformanceBenchmarkTrueno extends core {
         /* This instance object reference */
         let self = this;
 
-        /* Create Graph instance */
-        self._g = self._trueno.Graph();
-        self._g.setLabel(dbName);
-        /* Establish a Trueno connection and register callbacks */
-        self._trueno
-            .connect(s => {
-                /* Open trueno database instance */
-                // self._g.open()
-                //     .then((result) => {
-                        /* execute test cases */
+        // /* Create Graph instance */
+        // self._g = self._trueno.Graph();
+        // self._g.setLabel(dbName);
+        // /* Establish a Trueno connection and register callbacks */
+        // self._trueno
+        //     .connect(s => {
+        //         /* Open trueno database instance */
+        //         // self._g.open()
+        //         //     .then((result) => {
+        //                 /* execute test cases */
                         self.doTest();
-                    // });
-        }, s => {
-            console.log('disconnected from [%s]', dbName);
-            process.exit();
-        });
+        //             // });
+        // }, s => {
+        //     console.log('disconnected from [%s]', dbName);
+        //     process.exit();
+        // });
     }
 
     /**
@@ -118,7 +117,7 @@ class PerformanceBenchmarkTrueno extends core {
      */
     close() {
         /* Disconnect Trueno session */
-        this._trueno.disconnect();
+        // this._trueno.disconnect();
     }
 
     /*======================= BENCHMARK TESTCASES ======================*/
@@ -186,8 +185,7 @@ class PerformanceBenchmarkTrueno extends core {
         let self = this;
         /* Set filter for vertices */
         let filter = self._g.filter()
-            .term('prop.filmId', film)
-            // .match('label', 'Film');
+            .term('prop.filmId', film);
         /* Results */
         let result = self._g.fetch('v', filter);
 
@@ -197,7 +195,7 @@ class PerformanceBenchmarkTrueno extends core {
                 result
                     .then(results => {
 
-                        //console.log('[%d] ==> ', self._nproc, self._ctrl, results[0]._prop.control);
+                        // console.log('[%d] ==> ', self._nproc, self._ctrl, results[0]); //[0]._prop.control);
 
                         /* The query must return always one vertex */
                         let control = Number(results[0]._prop.control);
@@ -230,7 +228,8 @@ class PerformanceBenchmarkTrueno extends core {
         /* This instance object reference */
         let self = this;
         /* Query for filtering vertices */
-        let q = "{\"term\":{\"prop.filmId\":\"" + film + "\"}}";
+        // let q = "{\"term\":{\"prop.filmId\":\"" + film + "\"}}";
+        let q = "{\"query\":{\"bool\":{\"filter\":{\"term\":{\"prop.filmId\":\"" + film + "\"}}}}}";
 
         return new Promise(() => {
 
@@ -246,8 +245,8 @@ class PerformanceBenchmarkTrueno extends core {
 
                 /* adding the payload */
                 socket.emit('search', payload, function(results) {
-                    // console.log('[%d] ==> ', self._nproc, self._ctrl, results.prop.control, results);
-                    let control = Number(results.prop.control);
+                    // console.log('[%d] ==> ', self._nproc, self._ctrl, results); //results._source.prop.control, results);
+                    let control = Number(results._source.prop.control);
                     self._ctrl  = Math.round((self._ctrl + control) * 100000000) / 100000000;
 
                     self._nproc++;
@@ -507,7 +506,7 @@ class PerformanceBenchmarkTrueno extends core {
         /* This instance object reference */
         let self = this;
         /* Times to repeat a testcase */
-        let times = 5;
+        let times = 1;
 
         console.log('trueno');
 
@@ -535,8 +534,9 @@ class PerformanceBenchmarkTrueno extends core {
             /* Single Read */
             default:
             case BenchmarkType.SINGLE_READ:
-                self.test = self.singleReadNativeTest;
-                //self.test = self.singleReadSocketTest;
+                console.log('SINGLE_READ');
+                // self.test = self.singleReadNativeTest;
+                self.test = self.singleReadSocketTest;
                 // self.test = self.singleReadSocket5Test;
                 self.repeatTestCase('Single Reads', times);
                 break;

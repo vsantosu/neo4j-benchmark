@@ -107,6 +107,7 @@ class PerformanceBenchmarkCore {
                     /* Check if there are more calls enqueued */
                     if (self._control.length > 0) {
                         self.clean();
+                        Promise.delay(1000);
                         return self.doTestCase(test).then((result) => {
                             resolve();
                         });
@@ -154,27 +155,31 @@ class PerformanceBenchmarkCore {
                 .on('end', function() {
                     hrstart = process.hrtime();
 
-                    for (let k in keys) {
-                        promiseArray.push(
-                            new Promise((resolve, reject) => {
+                    var totalReq = Object.keys(keys).length;
+                    var bigPromise = new Promise((resolve, reject) => {
+                        for (let k in keys) {
                                 /* execute specific test */
-                                self.test(k, keys[k], resolve, reject);
-                            })
-                        )
-                    }
+                                self.test(k, keys[k], resolve, reject, totalReq);
+                        }
+                    });
 
-                    Promise.all(promiseArray)
+                    bigPromise
                         .then(count => {
+                            // hrend = process.hrtime(hrstart);
+                            // total = count[count.length-1].nproc;
+                            // size = count[count.length-1].size;
+                            // ctrl = count[count.length-1].ctrl;
+
                             hrend = process.hrtime(hrstart);
-                            total = count[count.length-1].nproc;
-                            size = count[count.length-1].size;
-                            ctrl = count[count.length-1].ctrl;
+                            total = count.nproc;
+                            size = count.size;
+                            ctrl = count.ctrl;
 
                             /* Print output */
                             console.log(
-                                '%s\t%ds %dms\t%d records\t%d records/s\t%d bytes\t%d bytes/call\t%d bytes/s\t%d',
+                                '%s\t%ds %dms\t%d\trecords\t%d records/s\t%d\tms (avg call)\t%d\tbytes\t%d\tbytes/call\t%d\tbytes/s\t%d',
                                 label, hrend[0], hrend[1]/1000000,
-                                total, total/(hrend[0] + hrend[1]/1000000000),
+                                total, total/(hrend[0] + hrend[1]/1000000000), (hrend[0]*1000 + hrend[1]/1000000)/total,
                                 size, size/total, size/(hrend[0] + hrend[1]/1000000000),
                                 ctrl);
                             resolve({processed: total, time: hrend[0] + hrend[1]/1000000000});
