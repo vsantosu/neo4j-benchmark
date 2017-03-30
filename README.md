@@ -153,6 +153,7 @@ Ask for all the direct neighbors of a vertex. In case of Trueno, the load was re
 **Neo4j** is **44 times faster** than Trueno finding the direct neighbors of vertices.
 
 ----------
+
 # 3. Performance Benchmarks (Native client)
 
 This benchmark compares the single read performance of the following configurations:
@@ -181,7 +182,37 @@ Read vertices (and all its properties).
 **Neo4j** is **3 times faster** than Trueno reading.
 
 ----------
-# 4. Batch Write Benchmarks
+
+# 4. Performance Benchmarks (Native client + web socket)
+
+This benchmark compares the single read performance of the following configurations:
+
+* **Trueno (REST)**. Current configuration, where data is retrieved from the ElasticSearch backend using a REST connection.
+* **Trueno (Transport Client using Elasticsearch Native API)**. Trueno access ElasticSearch Backend via a tunelling bridge (written in Java), which establish a connection with the backend using a native driver (Java). The comunication between the client and the tuneeling bridge is done via web socket (which include less overhead than the traditional socket.io communication that was before). The transport client connects with the Elasticsearch backend via messages (using the Elasticsearch Native API).
+* **Trueno (Native direct)**. Similar to the previous case, but the difference is that we use a Native Client instead of the Transport Client. A Native Client requires to instantiate a Elasticsearch node in the backend. Even thougth that this configuration is faster, is not recommended by Elasticsearch because in the long run will translate in more overhead to the backend. 
+* **Neo4j**. Neo4j standalone configuration.
+
+<p align="left">
+  <img src="https://raw.githubusercontent.com/mastayoda/neo4j-benchmark/master/assets/images/trueno_neo-performance-4-native.png">
+</p>
+
+## Single Reads
+Read vertices (and all its properties).
+
+|	GraphDB | Input (vertices)	| Time (secs) | Throughput (records/secs) | 
+| --------| ----------------- |------------ | -------------| 
+| Trueno (REST)	                | 10000             | 53.18       |  187.9857      | 
+| **Trueno (Transport Client)** | **50000**\*       | **7.51**    |  **6656.2756** | 
+| Trueno (Node Client)	        | 50000             |  5.76       |  8672.7523     | 
+| Neo4j	                        | 50000             | 14.87       |  3362.1890     | 
+
+\* *The test could not be performed using a larger dataset due a timeout on the connection.*
+
+**Trueno** is **2 times faster** than Neo4J reading.
+
+----------
+
+# 5. Batch Write Benchmarks
 
 In this experiment, we inserted the movies dataset in batches of 300 components until completion. We ran separate inserts(for vertices and edges).
 
