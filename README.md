@@ -201,10 +201,10 @@ Read vertices (and all its properties).
 
 |	GraphDB | Input (vertices)	| Time (secs) | Throughput (records/secs) | 
 | --------| ----------------- |------------ | -------------| 
-| Trueno (REST)	                | 10000             | 53.18       |  187.9857      | 
-| **Trueno (Transport Client)** | **50000**\*       | **7.51**    |  **6656.2756** | 
-| Trueno (Node Client)	        | 50000             |  5.76       |  8672.7523     | 
-| Neo4j	                        | 50000             | 14.87       |  3362.1890     | 
+| Trueno (REST)	                | 10000 \*     | 53.18       |  187.9857      | 
+| **Trueno (Transport Client)** | **50000**    | **7.51**    |  **6656.2756** | 
+| Trueno (Node Client)	        | 50000        |  5.76       |  8672.7523     | 
+| Neo4j	                        | 50000        | 14.87       |  3362.1890     | 
 
 \* *The test could not be performed using a larger dataset due a timeout on the connection.*
 
