@@ -85,6 +85,19 @@ Neo4j Spark Connector offers Spark-2.0 APIs for RDD, **DataFrame**, **GraphX** a
   <img height="400" src="https://raw.githubusercontent.com/mastayoda/neo4j-benchmark/master/assets/images/trueno_neo4jconnector_cassandra_convergence_pagerank_plot.png">
 </p>
 
+
+## GraphX PageRank Algorithm - Trueno-ES-Spark Native Connector
+
+| GraphDB                     | Loading data (secs) | PageRank (secs) | Total |
+| --------------------------- |-------------------- | --------------- | ----- |
+| Trueno + ES REST connector  |  46.097223           | 50.094236 | 96.19145884 |
+| Trueno + ES native connector  |  18.21496109           | 50.77911589 | 68.99407698 | 
+| Neo4j Spark Connector       |  7.588226894       | 42.54327112 |50.13149801|
+
+<p align="center">
+  <img height="400" src="https://raw.githubusercontent.com/mastayoda/neo4j-benchmark/master/assets/images/trueno_neo4j_compute_pr_connectors.png">
+</p>
+
 ## GraphX Connected Components Algorithm
 
 | GraphDB                     | Loading data (secs) | CC (secs) | Total |
