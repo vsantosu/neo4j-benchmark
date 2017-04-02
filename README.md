@@ -73,22 +73,9 @@ The Neo4j Spark Connector uses the binary **Bolt** protocol to transfer data fro
 
 Neo4j Spark Connector offers Spark-2.0 APIs for RDD, **DataFrame**, **GraphX** and **GraphFrames**.
 
-## GraphX PageRank Algorithm
-
-| GraphDB                     | Loading data (secs) | PageRank (secs) | Total |
-| --------------------------- |-------------------- | --------------- | ----- |
-| TruenoDB                    |  0.226920           | 23.514490 | 23.74140975 |
-| Neo4j Spark Connector - Iterative       |  1.891447322        | 16.25907452 |18.15052184|
-| Neo4j Spark Connector - Convergence      |  1.848343323        | 28.51172715 |30.36007047|
-
-<p align="center">
-  <img height="400" src="https://raw.githubusercontent.com/mastayoda/neo4j-benchmark/master/assets/images/trueno_neo4jconnector_cassandra_convergence_pagerank_plot.png">
-</p>
-
-
 ## GraphX PageRank Algorithm - Trueno-ES-Spark Native Connector
 
-| GraphDB                     | Loading data (secs) | PageRank (secs) | Total |
+| GraphDB                     | Loading data (secs) | PageRank (secs) | Total (secs) |
 | --------------------------- |-------------------- | --------------- | ----- |
 | Trueno + ES REST connector  |  46.097223           | 50.094236 | 96.19145884 |
 | Trueno + ES native connector  |  18.21496109           | 50.77911589 | 68.99407698 | 
