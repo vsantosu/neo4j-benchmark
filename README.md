@@ -73,28 +73,29 @@ The Neo4j Spark Connector uses the binary **Bolt** protocol to transfer data fro
 
 Neo4j Spark Connector offers Spark-2.0 APIs for RDD, **DataFrame**, **GraphX** and **GraphFrames**.
 
-## GraphX PageRank Algorithm
+## GraphX PageRank Algorithm - Trueno-ES-Spark Native Connector
 
-| GraphDB                     | Loading data (secs) | PageRank (secs) | Total |
+| GraphDB                     | Loading data (secs) | PageRank (secs) | Total (secs) |
 | --------------------------- |-------------------- | --------------- | ----- |
-| TruenoDB                    |  0.226920           | 23.514490 | 23.74140975 |
-| Neo4j Spark Connector - Iterative       |  1.891447322        | 16.25907452 |18.15052184|
-| Neo4j Spark Connector - Convergence      |  1.848343323        | 28.51172715 |30.36007047|
+| Trueno + ES REST connector  |  46.097223           | 50.094236 | 96.19145884 |
+| Trueno + ES native connector  |  18.21496109           | 50.77911589 | 68.99407698 | 
+| Neo4j Spark Connector       |  7.588226894       | 42.54327112 |50.13149801|
 
 <p align="center">
-  <img height="400" src="https://raw.githubusercontent.com/mastayoda/neo4j-benchmark/master/assets/images/trueno_neo4jconnector_cassandra_convergence_pagerank_plot.png">
+  <img height="400" src="https://raw.githubusercontent.com/mastayoda/neo4j-benchmark/master/assets/images/trueno_neo4j_compute_pr_connectors.png">
 </p>
 
 ## GraphX Connected Components Algorithm
 
-| GraphDB                     | Loading data (secs) | CC (secs) | Total |
+| GraphDB                     | Loading data (secs) | Connected Components (secs) | Total (secs) |
 | --------------------------- |-------------------- | --------------- | ----- |
-| TruenoDB (Spark 1.6.3)      |  0.342464           | 7.125350 | 7.984149423 |
-| Neo4j Spark Connector (Spark 2.1.0)      |  2.051709923        | 10.06688695 |12.11859688|
+| Trueno + ES REST connector  |  43.102359           | 71.283560 | 114.3859181 |
+| Trueno + ES native connector  |  18.32967072           | 12.46506647 | 30.79473719 | 
+| Neo4j Spark Connector       |  7.826405755       | 6.482508676 |14.30891443|
 
 
 <p align="center">
-  <img height="400" src="https://raw.githubusercontent.com/mastayoda/neo4j-benchmark/master/assets/images/trueno_neo4jconnector_cassandra_cc_plot.png">
+  <img height="400" src="https://raw.githubusercontent.com/mastayoda/neo4j-benchmark/master/assets/images/trueno_neo4j_compute_cc_connectors.png">
 </p>
 
 ----------
@@ -153,6 +154,7 @@ Ask for all the direct neighbors of a vertex. In case of Trueno, the load was re
 **Neo4j** is **44 times faster** than Trueno finding the direct neighbors of vertices.
 
 ----------
+
 # 3. Performance Benchmarks (Native client)
 
 This benchmark compares the single read performance of the following configurations:
@@ -181,7 +183,37 @@ Read vertices (and all its properties).
 **Neo4j** is **3 times faster** than Trueno reading.
 
 ----------
-# 4. Batch Write Benchmarks
+
+# 4. Performance Benchmarks (Native client + web socket)
+
+This benchmark compares the single read performance of the following configurations:
+
+* **Trueno (REST)**. Current configuration, where data is retrieved from the ElasticSearch backend using a REST connection.
+* **Trueno (Transport Client using Elasticsearch Native API)**. Trueno access ElasticSearch Backend via a tunelling bridge (written in Java), which establish a connection with the backend using a native driver (Java). The comunication between the client and the tuneeling bridge is done via web socket (which include less overhead than the traditional socket.io communication that was before). The transport client connects with the Elasticsearch backend via messages (using the Elasticsearch Native API).
+* **Trueno (Native direct)**. Similar to the previous case, but the difference is that we use a Native Client instead of the Transport Client. A Native Client requires to instantiate a Elasticsearch node in the backend. Even thougth that this configuration is faster, is not recommended by Elasticsearch because in the long run will translate in more overhead to the backend. 
+* **Neo4j**. Neo4j standalone configuration.
+
+<p align="left">
+  <img src="https://raw.githubusercontent.com/mastayoda/neo4j-benchmark/master/assets/images/trueno_neo-performance-4-native.png">
+</p>
+
+## Single Reads
+Read vertices (and all its properties).
+
+|	GraphDB | Input (vertices)	| Time (secs) | Throughput (records/secs) | 
+| --------| ----------------- |------------ | -------------| 
+| Trueno (REST)	                | 10000 \*     | 53.18       |  187.9857      | 
+| **Trueno (Transport Client)** | **50000**    | **7.51**    |  **6656.2756** | 
+| Trueno (Node Client)	        | 50000        |  5.76       |  8672.7523     | 
+| Neo4j	                        | 50000        | 14.87       |  3362.1890     | 
+
+\* *The test could not be performed using a larger dataset due a timeout on the connection.*
+
+**Trueno** is **2 times faster** than Neo4J reading.
+
+----------
+
+# 5. Batch Write Benchmarks
 
 In this experiment, we inserted the movies dataset in batches of 300 components until completion. We ran separate inserts(for vertices and edges).
 
