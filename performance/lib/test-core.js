@@ -35,6 +35,10 @@ class PerformanceBenchmarkCore {
 
         /* Input data file */
         this._input = param.input || DEFAULT_INPUT;
+        /* Indices for secondary processing */
+        this._input_indices = param.indices;
+        this._indices = [];
+        this._random  = false;
         /* Benchmark test to execute */
         this._type = param.type || BenchmarkType.SINGLE_READ;
         /* Controls the execution of the testcase */
@@ -70,20 +74,60 @@ class PerformanceBenchmarkCore {
 
         /* This instance object reference */
         let self = this;
+        /**/
+        self._random = this._input_indices !== undefined ? true : false;
 
-        for (let i=0; i<n; i++) {
-            self._control.push(i);
+
+        /* if a set of random indices was provided, load it first */
+        if (self._random) {
+
+            let column;
+
+            fs.createReadStream(self._input_indices)
+                .pipe(csv({separator: '\t'}))
+                .on('headers', function (headerList) {
+                    column = headerList[0]
+                })
+                .on('data', function(data) {
+                    self._indices.push(data[column]);
+                })
+                .on('end', function() {
+
+                    /* insert executions to the queue */
+                    for (let i=0; i<n; i++) {
+                        self._control.push(i);
+                    }
+
+                    self.doTestCase(test)
+                        .then(result => {
+                            console.log('\t avg: %d', self._proc/self._time)
+                            console.log('done!');
+                            /* close session */
+                            self.close();
+                        }, error => {
+                            console.log('repeatTestCase [ERR] =>', error);
+                        });
+                });
+
+        } else {
+
+            /* insert executions to the queue */
+            for (let i=0; i<n; i++) {
+                self._control.push(i);
+            }
+
+            self.doTestCase(test)
+                .then(result => {
+                    console.log('\t avg: %d', self._proc/self._time)
+                    console.log('done!');
+                    /* close session */
+                    self.close();
+                }, error => {
+                    console.log('repeatTestCase [ERR] =>', error);
+                });
+
         }
 
-        self.doTestCase(test)
-            .then(result => {
-                console.log('\t avg: %d', self._proc/self._time)
-                console.log('done!');
-                /* close session */
-                self.close();
-            }, error => {
-                console.log('repeatTestCase [ERR] =>', error);
-            });
     }
 
     /**
@@ -138,13 +182,14 @@ class PerformanceBenchmarkCore {
         /* Start, end time of processing */
         let hrstart, hrend;
         /* Total of records processed */
-        let total=0, size=0, ctrl=0;
+        let total=0, size=0, ctrl=0, write=0;
 
         return new Promise((resolve, reject) => {
 
             let column;
             fs.createReadStream(self._input)
-                .pipe(csv({separator: ','}))
+                //.pipe(csv({separator: ','}))
+                .pipe(csv({separator: '\t'}))
                 .on('headers', function (headerList) {
                     column = headerList[0]
                 })
@@ -158,8 +203,15 @@ class PerformanceBenchmarkCore {
                     var totalReq = Object.keys(keys).length;
                     var bigPromise = new Promise((resolve, reject) => {
                         for (let k in keys) {
-                                /* execute specific test */
-                                self.test(k, keys[k], resolve, reject, totalReq);
+                            /* execute specific test */
+                            let random = false;
+                            /* check if the index is defined */
+                            if (self._random) {
+                                let find = self._indices.find(x => x == k);
+                                random = (find != undefined) ? true : false;
+                            }
+                            // console.log('--> ', k, random);
+                            self.test(k, keys[k], resolve, reject, totalReq, random);
                         }
                     });
 
@@ -174,13 +226,15 @@ class PerformanceBenchmarkCore {
                             total = count.nproc;
                             size = count.size;
                             ctrl = count.ctrl;
+                            write = count.write;
 
                             /* Print output */
                             console.log(
-                                '%s\t%ds %dms\t%d\trecords\t%d records/s\t%d\tms (avg call)\t%d\tbytes\t%d\tbytes/call\t%d\tbytes/s\t%d',
+                                '%s\t%ds %dms\t%d\trecords\t%d records/s\t%d\tms (avg call)\t%d\tbytes\t%d\tbytes/call\t%d\tbytes/s\t%d\twrites\t%d',
                                 label, hrend[0], hrend[1]/1000000,
                                 total, total/(hrend[0] + hrend[1]/1000000000), (hrend[0]*1000 + hrend[1]/1000000)/total,
                                 size, size/total, size/(hrend[0] + hrend[1]/1000000000),
+                                write,
                                 ctrl);
                             resolve({processed: total, time: hrend[0] + hrend[1]/1000000000});
                         })

@@ -2,9 +2,9 @@
 
 /**
  * @author Edgardo A. Barsallo Yi (ebarsallo)
- * This module decription
- * @module path/moduleFileName
- * @see module:path/referencedModuleName
+ * Creates a random set of number to be used for the write test. Each number will represent an index.
+ * @module lib/random
+ * @see module:lib/test-core
  */
 
 /** Import modules */
@@ -41,8 +41,8 @@ class Random {
         let output;
 
         /* options */
-        let min = options.min | 0;
-        let max = options.max | 100;
+        let min = options.min || 0;
+        let max = options.max || 100;
 
         switch (distr)
         {
@@ -119,7 +119,7 @@ module.exports = Random;
 
 
 let random = new Random();
-let numbers = random.generate(PDType.UNIFORM_WHOLE, 10, {min: 0, max: 4999});
+let numbers = random.generate(PDType.UNIFORM_WHOLE, 5000, {min: 0, max: 49999});
 
 /* write output to a file */
 let file = fs.createWriteStream('../data/random-5k.txt');
@@ -130,4 +130,6 @@ file.on('error', function(e) {
 numbers.forEach(function(x) {
    file.write(x + '\n');
 });
-file.end()
+file.end();
+
+console.log('done!')
