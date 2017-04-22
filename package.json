@@ -21,6 +21,7 @@
     "socket.io-client": "^1.7.3",
     "socket.io-stream": "^0.9.1",
     "probability-distributions": "^0.8.5",
-    "trueno-javascript-driver": "git+https://github.com/truenodb/trueno-javascript-driver.git"
+    "trueno-javascript-driver": "git+https://github.com/truenodb/trueno-javascript-driver.git",
+    "uws": "^0.14.1"
   }
 }

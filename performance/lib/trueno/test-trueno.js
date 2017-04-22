@@ -2,9 +2,10 @@
 
 /**
  * @author Edgardo A. Barsallo Yi (ebarsallo)
- * This module decription
- * @module path/moduleFileName
- * @see module:path/referencedModuleName
+ * Performance benchmarks test suite for TruenoDB.
+ *
+ * @module lib/trueno/test-trueno
+ * @see performance:lib/test-core
  */
 
 /* import modules */
@@ -27,8 +28,8 @@ const host  = 'http://localhost';
 /* Performance Benchmars Types */
 var BenchmarkType = Enums.Test;
 /* input for read test */
-const input = __dirname + '/../../data/pokec-50k.csv';
-/* indices to use for */
+const input = __dirname + '/../../data/pokec-10.csv';
+/* indices to use for read/write test */
 const indices =  __dirname + '/../../data/random-5k.csv';
 /* socket communication */
 var ws = new Socket('ws://localhost:8008');
@@ -242,8 +243,8 @@ class PerformanceBenchmarkTrueno extends core {
         ws.send(JSON.stringify(payload));
         /* adding callback */
         self.callbacks[counter1] = function(results){
-            // console.log('[%d] {%d | %s} ==> ', self._nproc, id, film, self._ctrl, results); //results._source.prop.control, results);
-            let control = 0; //results.object[0]._source.prop.control;
+            // console.log('[%d] {%d | %s} ==> ', self._nproc, id, film, self._ctrl, results.object[0]._source); //results._source.prop.control, results);
+            let control = results.object[0]._source.id;
             self._ctrl  = Math.round((self._ctrl + control) * 100000000) / 100000000;
 
             /* if the object is marked for writing, do it */
@@ -370,7 +371,7 @@ class PerformanceBenchmarkTrueno extends core {
 /* exporting the module */
 module.exports = PerformanceBenchmarkTrueno;
 
-let t = new PerformanceBenchmarkTrueno({input: input, type: BenchmarkType.SINGLE_READ});
+// let t = new PerformanceBenchmarkTrueno({input: input, type: BenchmarkType.SINGLE_READ});
 // let t = new PerformanceBenchmarkTrueno({input: input, type: BenchmarkType.SINGLE_WRITE});
-// let t = new PerformanceBenchmarkTrueno({input: input, indices: indices, type: BenchmarkType.SINGLE_READ_WRITE});
+let t = new PerformanceBenchmarkTrueno({input: input, indices: indices, type: BenchmarkType.SINGLE_READ_WRITE});
 // let t = new PerformanceBenchmarkTrueno({input: input, type: BenchmarkType.NEIGHBORS});
