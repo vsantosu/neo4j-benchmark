@@ -25,7 +25,7 @@ var BenchmarkType = Enums.Test;
 const input = __dirname + '/../../data/pokec-10.csv';
 /* indices to use for read/write test */
 const indices =  __dirname + '/../../data/random-5k.csv';
-
+/* lowerbound id used for inserted objects */
 var baseId = 2000000;
 
 /*========================  CLASS DEFINITION  ======================*/
@@ -139,7 +139,7 @@ class PerformanceBenchmarkNeo extends core {
             .subscribe({
                 onNext: function(record) {
                     //console.log('[%d] ==> ', self._nproc, record._fields);
-                    let control = Number(record._fields[0].properties.id);
+                    let control = Number(record._fields[0].properties.userId);
                     self._nproc++
                     self._size += sizeof(record);
                     self._ctrl  = Math.round((self._ctrl + control) * 100000000) / 100000000;
@@ -320,7 +320,7 @@ class PerformanceBenchmarkNeo extends core {
         /* This instance object reference */
         let self = this;
         /* Times to repeat a testcase */
-        let times = 3;
+        let times = 10;
 
         console.log('neo4j');
 
@@ -359,7 +359,7 @@ class PerformanceBenchmarkNeo extends core {
 module.exports = PerformanceBenchmarkNeo;
 
 
-// let t = new PerformanceBenchmarkNeo({input: input, type: BenchmarkType.SINGLE_READ});
-let t = new PerformanceBenchmarkNeo({input: input, type: BenchmarkType.SINGLE_WRITE});
+let t = new PerformanceBenchmarkNeo({input: input, type: BenchmarkType.SINGLE_READ});
+// let t = new PerformanceBenchmarkNeo({input: input, type: BenchmarkType.SINGLE_WRITE});
 // let t = new PerformanceBenchmarkNeo({input: input, indices: indices, type: BenchmarkType.SINGLE_READ_WRITE});
 // let t = new PerformanceBenchmarkNeo({input: input, type: BenchmarkType.NEIGHBORS});

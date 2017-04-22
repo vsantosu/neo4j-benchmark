@@ -33,6 +33,8 @@ const input = __dirname + '/../../data/pokec-10.csv';
 const indices =  __dirname + '/../../data/random-5k.csv';
 /* socket communication */
 var ws = new Socket('ws://localhost:8008');
+/* lowerbound id used for inserted objects */
+var baseId = 2000000;
 
 /*========================  CLASS DEFINITION  ======================*/
 
@@ -154,8 +156,6 @@ class PerformanceBenchmarkTrueno extends core {
         let self = this;
         let counter = 'films-' + id;
         /* Query for filtering vertices */
-        // let q = "{\"term\":{\"prop.filmId\":\"" + film + "\"}}";
-        // let q = "{\"term\":{\"prop.filmId\":\"" + film + "\"}}";
         let q = "{\"query\":{\"bool\":{\"filter\":{\"term\":{\"_id\":\""+film+"\"}}}}}";
 
         /* the payload object */
@@ -177,7 +177,7 @@ class PerformanceBenchmarkTrueno extends core {
         /* adding callback */
         self.callbacks[counter] = function(results){
             // console.log('[%d] {%d | %s} ==> ', self._nproc, id, film, self._ctrl, results); //results._source.prop.control, results);
-            let control = 0; //results.object[0]._source.prop.control;
+            let control = results.object[0]._source.id;
             self._ctrl  = Math.round((self._ctrl + control) * 100000000) / 100000000;
 
             self._nproc++;
@@ -201,6 +201,46 @@ class PerformanceBenchmarkTrueno extends core {
      * @param reject
      */
     singleWriteTest(id, film, resolve, reject, totalReq) {
+        /* This instance object reference */
+        let self = this;
+        let counter = 'persist-' + id;
+        /* Object to be inserted */
+        let obj = {};
+        obj.id=baseId++;
+        obj._prop={};
+        obj._prop.age = id;
+        obj._prop.complete = 99;
+        obj._prop.gender = 0;
+        obj._prop.region = 'Westworld';
+
+        let internal  = {
+            index: dbName,
+            type: 'v',
+            id: obj.id,
+            source: obj
+        }
+
+        let payload = {
+            callbackIndex: counter,
+            action: "persist",
+            object: internal
+        }
+
+        ws.send(JSON.stringify(payload));
+
+        // console.log('write!');
+        /* adding callback */
+        self.callbacks[counter] = function(results){
+            // console.log('write done!');
+            self._write++;
+            self._nproc++;
+            self._size += sizeof(results);
+            self._receivedReq++;
+
+            if(self._receivedReq >= totalReq){
+                resolve({nproc: self._nproc, size: self._size, ctrl: self._ctrl, write: self._write});
+            }
+        }
 
     }
 
@@ -266,21 +306,12 @@ class PerformanceBenchmarkTrueno extends core {
                     object: internal_2
                 }
 
-                let promise = new Promise((resolve, reject) => {
-                    ws.send(JSON.stringify(payload_2));
+                ws.send(JSON.stringify(payload_2));
 
-                    // console.log('write!');
-                    /* adding callback */
-                    self.callbacks[counter2] = function(results){
-                        // console.log('write done!');
-                        resolve({write: 1});
-                    };
-
-                });
-
-                promise.then(count => {
-                    // console.log('-->', count.write);
-
+                // console.log('write!');
+                /* adding callback */
+                self.callbacks[counter2] = function(results){
+                    // console.log('write done!');
                     self._write++;
                     self._nproc++;
                     self._size += sizeof(results);
@@ -290,7 +321,8 @@ class PerformanceBenchmarkTrueno extends core {
                         resolve({nproc: self._nproc, size: self._size, ctrl: self._ctrl, write: self._write});
                     }
 
-                })
+                };
+
             } else {
 
                 self._nproc++;
@@ -331,7 +363,7 @@ class PerformanceBenchmarkTrueno extends core {
         /* This instance object reference */
         let self = this;
         /* Times to repeat a testcase */
-        let times = 3;
+        let times = 10;
 
         console.log('trueno');
 
@@ -371,7 +403,7 @@ class PerformanceBenchmarkTrueno extends core {
 /* exporting the module */
 module.exports = PerformanceBenchmarkTrueno;
 
-// let t = new PerformanceBenchmarkTrueno({input: input, type: BenchmarkType.SINGLE_READ});
+let t = new PerformanceBenchmarkTrueno({input: input, type: BenchmarkType.SINGLE_READ});
 // let t = new PerformanceBenchmarkTrueno({input: input, type: BenchmarkType.SINGLE_WRITE});
-let t = new PerformanceBenchmarkTrueno({input: input, indices: indices, type: BenchmarkType.SINGLE_READ_WRITE});
+// let t = new PerformanceBenchmarkTrueno({input: input, indices: indices, type: BenchmarkType.SINGLE_READ_WRITE});
 // let t = new PerformanceBenchmarkTrueno({input: input, type: BenchmarkType.NEIGHBORS});
