@@ -19,9 +19,9 @@ const core = require('../test-core');
 /*==========================   PARAMETERS  =========================*/
 
 /* single database server: local */
-const host  = 'bolt://localhost';
+// const host  = 'bolt://localhost';
 /* single database server: mc17 */
-//const host  = 'bolt://mc17.cs.purdue.edu';
+const host  = 'bolt://mc17.cs.purdue.edu';
 /* cluster server: pdsl24 */
 // const host  = 'bolt+routing://pdsl24.cs.purdue.edu:7687';
 /* Performance Benchmars Types */
@@ -145,7 +145,7 @@ class PerformanceBenchmarkNeo extends core {
         result
             .subscribe({
                 onNext: function(record) {
-                    //console.log('[%d] ==> ', self._nproc, record._fields);
+                    // console.log('[%d] ==> ', self._nproc, record._fields);
                     let control = Number(record._fields[0].properties.userId);
                     self._nproc++
                     self._size += sizeof(record);

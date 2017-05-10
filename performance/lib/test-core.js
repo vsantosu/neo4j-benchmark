@@ -195,7 +195,8 @@ class PerformanceBenchmarkCore {
                 })
                 .on('data', function(data) {
                     // console.log('-->', data[column]);
-                    keys.push(data[column]);
+                    // keys.push(data[column]);
+                    keys.push(parseInt(data[column]));
                 })
                 .on('end', function() {
                     hrstart = process.hrtime();
@@ -217,10 +218,6 @@ class PerformanceBenchmarkCore {
 
                     bigPromise
                         .then(count => {
-                            // hrend = process.hrtime(hrstart);
-                            // total = count[count.length-1].nproc;
-                            // size = count[count.length-1].size;
-                            // ctrl = count[count.length-1].ctrl;
 
                             hrend = process.hrtime(hrstart);
                             total = count.nproc;
