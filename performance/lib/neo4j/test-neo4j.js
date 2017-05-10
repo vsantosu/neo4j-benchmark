@@ -18,11 +18,16 @@ const core = require('../test-core');
 
 /*==========================   PARAMETERS  =========================*/
 
+/* single database server: local */
 const host  = 'bolt://localhost';
+/* single database server: mc17 */
+//const host  = 'bolt://mc17.cs.purdue.edu';
+/* cluster server: pdsl24 */
+// const host  = 'bolt+routing://pdsl24.cs.purdue.edu:7687';
 /* Performance Benchmars Types */
 var BenchmarkType = Enums.Test;
 /* input for read test */
-const input = __dirname + '/../../data/pokec-10.csv';
+const input = __dirname + '/../../data/pokec-50k.csv';
 /* indices to use for read/write test */
 const indices =  __dirname + '/../../data/random-5k.csv';
 /* lowerbound id used for inserted objects */
@@ -70,19 +75,21 @@ class PerformanceBenchmarkNeo extends core {
 
         /* Create a driver instance. It should be enough to have a single driver per database per application. */
         self._driver = neo4j.driver(host, neo4j.auth.basic("neo4j", "trueno"));
-        /* Register a callback to know if driver creation was successful: */
-        self._driver.onCompleted = function() {
+        /* Create a session to run Cypher statements in. */
+        self._session = self._driver.session();
+        /* Since version 1.3.0 connection is done lazy */
+        self._session.run('RETURN 1').then(() => {
+
             /* proceed with using the driver, it was successfully instantiated */
             // console.log('Driver instantiation success');
             /* start test */
             self.doTest();
-        };
-        /* Register a callback to know if driver creation failed. */
-        self._driver.onError = function(error) {
-            console.log('Driver instantiation failed', error);
-        };
-        /* Create a session to run Cypher statements in. */
-        self._session = self._driver.session();
+
+        }).catch(error => {
+
+            /* Fail application startup */
+            console.log('Error while trying to startup testcase: ', error);
+        })
 
     }
 
