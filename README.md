@@ -211,6 +211,18 @@ Read vertices (and all its properties).
 
 **Trueno** is **2 times faster** than Neo4J reading.
 
+
+## Latest Results
+
+| Test             |	GraphDB | Input (vertices)	| Time (secs) | Std Dev | Throughput (records/secs) | Std Dev | 
+| ----------       | -------- | ----------------- |------------ | ------- | -------------| -------------- |
+| Single Reads     | Trueno 	| 50000             | 14.645      | 1.612   | 3413.83      |  360.772       | 
+| Single Reads     | Neo4j    | 50000             | 14.049      | 1.524   | 3558.765     |  356.896       |
+| Single Reads+Write (90/10) | Trueno   |  50000  |  27.703     | 4.776   |  1804.793    |  227.376       |
+| Single Reads+Write (90/10) | Neo4j    |  50000  |  25.486     | 5.742   |  1961.752    |  334.748       |
+| Single Writes    | Trueno   | 5000              | 3.620       | 1.366   | 1380.717     |  397.886       |
+| Single Writes    | Neo4j    | 5000              | 27.1322     | 16.203  | 184.242      |  79.332        |     
+
 ----------
 
 # 5. Batch Write Benchmarks
