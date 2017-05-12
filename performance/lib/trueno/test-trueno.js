@@ -11,7 +11,6 @@
 /* import modules */
 const Promise = require("bluebird");
 const sizeof = require('sizeof').sizeof;
-const Trueno = require('trueno-javascript-driver');
 const Socket = require('uws');
 const Enums = require('../enums');
 const core = require('../test-core');
@@ -32,7 +31,10 @@ const input = __dirname + '/../../data/pokec-10.csv';
 /* indices to use for read/write test */
 const indices =  __dirname + '/../../data/random-5k.csv';
 /* socket communication */
-var ws = new Socket('ws://localhost:8008');
+// var ws = new Socket('ws://xanadu-boiler-osx:8007');      // <-~ works!
+// var ws = new Socket('ws://127.0.0.1:8007');              // <-~ works!
+// var ws = new Socket('ws://localhost:8007');              // <-~ not always works!
+var ws = new Socket('ws://mc01.cs.purdue.edu:8007');              // <-~ works!
 /* lowerbound id used for inserted objects */
 var baseId = 2000000;
 
@@ -62,8 +64,6 @@ class PerformanceBenchmarkTrueno extends core {
         this._nproc = 0;
         this._counter = 0;
         this._receivedReq = 0;
-        /* Instantiate Trueno connection */
-        this._trueno = new Trueno({host: host, port: 8000, debug: false});
         /* Initialize Trueno driver */
         this.init();
 
@@ -90,8 +90,9 @@ class PerformanceBenchmarkTrueno extends core {
             self.doTest();
         });
 
-        ws.on('error', function error() {
+        ws.on('error', function error(err) {
             console.log('Error connecting!');
+            console.log(err);
         });
 
         ws.on('message', function(data, flags) {
@@ -101,7 +102,7 @@ class PerformanceBenchmarkTrueno extends core {
             /* invoke the callback */
             self.callbacks[obj.callbackIndex](obj);
 
-            //console.log('Message: ' + data);
+            // console.log('Message: ' + data);
         });
 
         ws.on('close', function(code, message) {
@@ -130,7 +131,6 @@ class PerformanceBenchmarkTrueno extends core {
      */
     close() {
         /* Disconnect Trueno session */
-        // this._trueno.disconnect();
         process.exit();
     }
 
@@ -150,13 +150,14 @@ class PerformanceBenchmarkTrueno extends core {
      * @param resolve
      * @param reject
      */
-    singleReadSocketTest(id, film, resolve, reject, totalReq) {
+    singleReadTest(id, film, resolve, reject, totalReq) {
 
         /* This instance object reference */
         let self = this;
         let counter = 'films-' + id;
         /* Query for filtering vertices */
-        let q = "{\"query\":{\"bool\":{\"filter\":{\"term\":{\"_id\":\""+film+"\"}}}}}";
+        // let q = "{\"query\":{\"bool\":{\"filter\":{\"term\":{\"_id\":\""+film+"\"}}}}}";    // <-~ ES 2.3.x
+        let q = "{\"bool\":{\"filter\":{\"term\":{\"_id\":\""+film+"\"}}}}";                // <-~ ES 5.x
 
         /* the payload object */
         var internal = {
@@ -261,9 +262,9 @@ class PerformanceBenchmarkTrueno extends core {
         let counter1 = 'films-' + id;
         let counter2 = 'persist-' + id;
         /* Query for filtering vertices */
-        // let q = "{\"term\":{\"prop.filmId\":\"" + film + "\"}}";
-        // let q = "{\"term\":{\"prop.filmId\":\"" + film + "\"}}";
-        let q = "{\"query\":{\"bool\":{\"filter\":{\"term\":{\"_id\":\""+film+"\"}}}}}";
+        // let q = "{\"query\":{\"bool\":{\"filter\":{\"term\":{\"_id\":\""+film+"\"}}}}}";    // <-~ ES 2.x
+        let q = "{\"bool\":{\"filter\":{\"term\":{\"_id\":\""+film+"\"}}}}";                // <-~ ES 5.x
+
 
         /* the payload object */
         var internal = {
@@ -392,7 +393,7 @@ class PerformanceBenchmarkTrueno extends core {
             /* Single Read */
             default:
             case BenchmarkType.SINGLE_READ:
-                self.test = self.singleReadSocketTest;
+                self.test = self.singleReadTest;
                 self.repeatTestCase('Single Reads', times);
                 break;
         }
