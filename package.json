@@ -18,6 +18,7 @@
     "neo4j-driver": "^1.1.0",
     "sizeof": "^1.0.0",
     "probability-distributions": "^0.8.5",
-    "uws": "^0.14.1"
+    "uws": "^0.14.1",
+    "commander": "^2.9.0"
   }
 }

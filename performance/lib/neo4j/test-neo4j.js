@@ -12,8 +12,10 @@
 const Promise = require("bluebird");
 const sizeof = require('sizeof').sizeof;
 const neo4j = require('neo4j-driver').v1;
+const cli = require('commander');
 const Enums = require('../enums');
 const core = require('../test-core');
+const pkg = require('../../../package.json');
 
 
 /*==========================   PARAMETERS  =========================*/
@@ -21,15 +23,21 @@ const core = require('../test-core');
 /* single database server: local */
 // const host  = 'bolt://localhost';
 /* single database server: mc17 */
-const host  = 'bolt://mc17.cs.purdue.edu';
+const host  = 'bolt://pdsl19.cs.purdue.edu';
 /* cluster server: pdsl24 */
 // const host  = 'bolt+routing://pdsl24.cs.purdue.edu:7687';
+
 /* Performance Benchmars Types */
 var BenchmarkType = Enums.Test;
+
+/* Database */
+let dbName = 'biogrid';
 /* input for read test */
-const input = __dirname + '/../../data/pokec-50k.csv';
+// let input = __dirname + '/../../data/pokec-50k.csv';
+// let input = __dirname + '/../../data/citation-50k.csv';
+let input = __dirname + '/../../data/biogrid-10.csv';
 /* indices to use for read/write test */
-const indices =  __dirname + '/../../data/random-5k.csv';
+let indices =  __dirname + '/../../data/random-5k.csv';
 /* lowerbound id used for inserted objects */
 var baseId = 2000000;
 
@@ -135,7 +143,12 @@ class PerformanceBenchmarkNeo extends core {
         let self = this;
         /* CQL to extract films by name */
         // let query = "MATCH (f:Film) -[]-> () WHERE f.name = {name} RETURN f";
-        let query = "MATCH (u:User {userId: {name}}) RETURN u";
+        /* pokec */
+        // let query = "MATCH (u:User {userId: {name}}) RETURN u";
+        /* citation */
+        // let query = "MATCH (u:Paper {paperId: {name}}) RETURN u";
+        /* biogrid */
+        let query = "MATCH (u:Protein {proteinId: {name}}) RETURN u";
         /* Parameters for CQL */
         let param = {name: film};
         /* Results */
@@ -146,10 +159,14 @@ class PerformanceBenchmarkNeo extends core {
             .subscribe({
                 onNext: function(record) {
                     // console.log('[%d] ==> ', self._nproc, record._fields);
-                    let control = Number(record._fields[0].properties.userId);
+                    /* pokec */
+                    // let control = Number(record._fields[0].properties.userId);
+                    /* citation */
+                    let control = Number(record._fields[0].properties.paperId);
+                    self._ctrl  = self._ctrl + control;
+
                     self._nproc++
                     self._size += sizeof(record);
-                    self._ctrl  = Math.round((self._ctrl + control) * 100000000) / 100000000;
                 },
                 onCompleted: function(metadata) {
                     // console.log('onCompleted: ', metadata);
@@ -329,7 +346,7 @@ class PerformanceBenchmarkNeo extends core {
         /* Times to repeat a testcase */
         let times = 10;
 
-        console.log('neo4j');
+        console.log('neo4j (%s)', dbName);
 
         switch (self._type) {
 
@@ -365,6 +382,28 @@ class PerformanceBenchmarkNeo extends core {
 /* exporting the module */
 module.exports = PerformanceBenchmarkNeo;
 
+cli.version(pkg.version)
+  .command('read       [options]', 'Launch SINGLE READ benchamark ')
+  .command('write      [options]', 'Launch SINGLE READ+WRITE benchamark')
+  .command('readwrite  [options]', 'Launch SINGLE WRITE benchmark')
+  .option('-d, --dbname <string>', 'Set database')
+  .option('-i, --input <string>', 'Set input file')
+  .option('-t, --testcase <number>', 'Set testcase to execute', parseInt)
+  .parse(process.argv);
+
+if ( cli.dbname ) {
+    dbName = cli.dbname;
+}
+
+if ( cli.input) {
+    input = cli.input;
+}
+
+if ( cli.testcase) {
+    console.log(cli.testcase);
+}
+
+process.exit();
 
 let t = new PerformanceBenchmarkNeo({input: input, type: BenchmarkType.SINGLE_READ});
 // let t = new PerformanceBenchmarkNeo({input: input, type: BenchmarkType.SINGLE_WRITE});

@@ -1,3 +1,4 @@
+paperId:ID(Paper),title
 9907061,"Some Properties of Type I String Theory"
 9706120,"Product Einstein Manifolds, Zeta-Function Regularization and the Multiplicative Anomaly"
 9802091,"Matrix Theory in Curved Space"
@@ -18436,7 +18437,6 @@
 9805073,"Planes, branes and automorphisms: I Static branes"
 9908173,"Loss of Causality in Discretized Light-Cone Quantisation"
 0202056,"A Gravity Dual of the Chiral Anomaly"
-paperId:ID(Paper),title
 9904062,"Covariant Hamiltonian field theory"
 9606071,"$n$-point functions of $2d$ Yang-Mills theories on Riemann surfaces"
 9303030,"Large N Limit in the Quantum Hall Effect"
