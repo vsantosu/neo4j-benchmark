@@ -2,9 +2,9 @@
 
 /**
  * @author Edgardo A. Barsallo Yi (ebarsallo)
- * This module decription
- * @module path/moduleFileName
- * @see module:path/referencedModuleName
+ * Base class for benchmark performance test
+ *
+ * @module lib/test-core
  */
 
 /* import modules */
@@ -14,6 +14,7 @@ const csv = require('csv-parser');
 const fs = require('fs');
 
 // Parameters for test
+const DEFAULT_DB = 'films';
 const DEFAULT_INPUT = __dirname + '/../../data/films-10k.csv';
 const times = 10;
 
@@ -33,6 +34,8 @@ class PerformanceBenchmarkCore {
      */
     constructor(param = {}) {
 
+        /* Database */
+        this._dbName = param.dbName || DEFAULT_DB;
         /* Input data file */
         this._input = param.input || DEFAULT_INPUT;
         /* Indices for secondary processing */
@@ -46,6 +49,12 @@ class PerformanceBenchmarkCore {
 
         this._proc = 0;
         this._time = 0;
+
+
+        console.log('--> ', this._dbName);
+        console.log('--> ', this._input);
+        console.log('--> ', this._input_indices);
+        console.log('--> ', this._type);
     }
 
     /*========================= HELPER FUNCTIONS =======================*/

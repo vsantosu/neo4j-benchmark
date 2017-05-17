@@ -162,7 +162,7 @@ class PerformanceBenchmarkTrueno extends core {
         /* the payload object */
         var internal = {
             query: q,
-            index: dbName,
+            index: self._dbName,
             type: "v",
             size: 1000
         };
@@ -215,7 +215,7 @@ class PerformanceBenchmarkTrueno extends core {
         obj._prop.region = 'Westworld';
 
         let internal  = {
-            index: dbName,
+            index: self._dbName,
             type: 'v',
             id: obj.id,
             source: obj
@@ -269,7 +269,7 @@ class PerformanceBenchmarkTrueno extends core {
         /* the payload object */
         var internal = {
             query: q,
-            index: dbName,
+            index: self._dbName,
             type: "v",
             size: 1000
         };
@@ -295,7 +295,7 @@ class PerformanceBenchmarkTrueno extends core {
                 /* update a field */
                 obj._prop.test = "yes";
                 let internal_2  = {
-                    index: dbName,
+                    index: self._dbName,
                     type: 'v',
                     id: obj.id,
                     source: obj
@@ -404,7 +404,7 @@ class PerformanceBenchmarkTrueno extends core {
 /* exporting the module */
 module.exports = PerformanceBenchmarkTrueno;
 
-let t = new PerformanceBenchmarkTrueno({input: input, type: BenchmarkType.SINGLE_READ});
+// let t = new PerformanceBenchmarkTrueno({input: input, type: BenchmarkType.SINGLE_READ});
 // let t = new PerformanceBenchmarkTrueno({input: input, type: BenchmarkType.SINGLE_WRITE});
 // let t = new PerformanceBenchmarkTrueno({input: input, indices: indices, type: BenchmarkType.SINGLE_READ_WRITE});
 // let t = new PerformanceBenchmarkTrueno({input: input, type: BenchmarkType.NEIGHBORS});
