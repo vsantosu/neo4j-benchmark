@@ -40,6 +40,10 @@ let input = __dirname + '/../../data/biogrid-10.csv';
 let indices =  __dirname + '/../../data/random-5k.csv';
 /* lowerbound id used for inserted objects */
 var baseId = 2000000;
+/* queries according to database */
+let query_read = [];
+let query_write = [];
+let query_read_write = [];
 
 /*========================  CLASS DEFINITION  ======================*/
 
@@ -80,6 +84,22 @@ class PerformanceBenchmarkNeo extends core {
 
         /* This instance object reference */
         let self = this;
+
+        /* Set parameters queries */
+        query_read['films']    = "MATCH (f:Film) -[]-> () WHERE f.name = {name} RETURN f";
+        query_read['pokec']    = "MATCH (u:User {userId: {name}}) RETURN u";
+        query_read['citation'] = "MATCH (u:Paper {paperId: {name}}) RETURN u";
+        query_read['biogrid']  = "MATCH (u:Protein {proteinId: {name}}) RETURN u";
+
+        query_write['films']    = "CREATE (u:Film {filmId:{id}, field1:{age}, field2:{complete}, field3:{gender}, field4:{region}})";
+        query_write['pokec']    = "CREATE (u:User {userId:{id}, age:{age}, completion_percentage:{complete}, gender:{gender}, region:{region}})";
+        query_write['citation'] = "CREATE (u:Paper {paperId:{id}, field1:{age}, field2:{complete}, field3:{gender}, field4:{region}})";
+        query_write['biogrid']  = "CREATE (u:Protein {proteinId:{id}, field1:{age}, field2:{complete}, field3:{gender}, field4:{region}})";
+
+        query_read_write['films']    = "MATCH (u:Film {filmId: {name}}) SET u.test = {value}  RETURN u";
+        query_read_write['pokec']    = "MATCH (u:User {userId: {name}}) SET u.test = {value}  RETURN u";
+        query_read_write['citation'] = "MATCH (u:Paper {paperId: {name}}) SET u.test = {value}  RETURN u";
+        query_read_write['biogrid']  = "MATCH (u:Protein {proteinId: {name}}) SET u.test = {value}  RETURN u";
 
         /* Create a driver instance. It should be enough to have a single driver per database per application. */
         self._driver = neo4j.driver(host, neo4j.auth.basic("neo4j", "trueno"));
@@ -142,13 +162,7 @@ class PerformanceBenchmarkNeo extends core {
         /* This instance object reference */
         let self = this;
         /* CQL to extract films by name */
-        // let query = "MATCH (f:Film) -[]-> () WHERE f.name = {name} RETURN f";
-        /* pokec */
-        // let query = "MATCH (u:User {userId: {name}}) RETURN u";
-        /* citation */
-        // let query = "MATCH (u:Paper {paperId: {name}}) RETURN u";
-        /* biogrid */
-        let query = "MATCH (u:Protein {proteinId: {name}}) RETURN u";
+        let query = query_read[self._dbName];
         /* Parameters for CQL */
         let param = {name: film};
         /* Results */
@@ -197,7 +211,7 @@ class PerformanceBenchmarkNeo extends core {
         /* This instance object reference */
         let self = this;
         /* CQL to create a vertex */
-        let query = "CREATE (u:User {userId:{id}, age:{age}, completion_percentage:{complete}, gender:{gender}, region:{region}})";
+        let query = query_write[self._dbName];
         /* Parameters for CQL */
         let param = {id:baseId++, age: id, complete: 99, gender: 0, region: 'Westworld'};
         /* Results */
@@ -238,9 +252,9 @@ class PerformanceBenchmarkNeo extends core {
         let query;
         /* If doWrite == true we must perform an update, otherwise is just a select */
         if (doWrite)
-            query = "MATCH (u:User {userId: {name}}) SET u.test = {value}  RETURN u";
+            query = query_read_write[self._dbName];
         else
-            query = "MATCH (u:User {userId: {name}}) RETURN u";
+            query = query_read[self._dbName];
         /* Parameters for CQL */
         let param = {name: film, value: "yes"};
         /* Results */
@@ -346,7 +360,7 @@ class PerformanceBenchmarkNeo extends core {
         /* Times to repeat a testcase */
         let times = 10;
 
-        console.log('neo4j (%s)', dbName);
+        console.log('neo4j (%s)', self._dbName);
 
         switch (self._type) {
 
@@ -382,30 +396,7 @@ class PerformanceBenchmarkNeo extends core {
 /* exporting the module */
 module.exports = PerformanceBenchmarkNeo;
 
-cli.version(pkg.version)
-  .command('read       [options]', 'Launch SINGLE READ benchamark ')
-  .command('write      [options]', 'Launch SINGLE READ+WRITE benchamark')
-  .command('readwrite  [options]', 'Launch SINGLE WRITE benchmark')
-  .option('-d, --dbname <string>', 'Set database')
-  .option('-i, --input <string>', 'Set input file')
-  .option('-t, --testcase <number>', 'Set testcase to execute', parseInt)
-  .parse(process.argv);
-
-if ( cli.dbname ) {
-    dbName = cli.dbname;
-}
-
-if ( cli.input) {
-    input = cli.input;
-}
-
-if ( cli.testcase) {
-    console.log(cli.testcase);
-}
-
-process.exit();
-
-let t = new PerformanceBenchmarkNeo({input: input, type: BenchmarkType.SINGLE_READ});
+// let t = new PerformanceBenchmarkNeo({input: input, type: BenchmarkType.SINGLE_READ});
 // let t = new PerformanceBenchmarkNeo({input: input, type: BenchmarkType.SINGLE_WRITE});
 // let t = new PerformanceBenchmarkNeo({input: input, indices: indices, type: BenchmarkType.SINGLE_READ_WRITE});
 // let t = new PerformanceBenchmarkNeo({input: input, type: BenchmarkType.NEIGHBORS});
