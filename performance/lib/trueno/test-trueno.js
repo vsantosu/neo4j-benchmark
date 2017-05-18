@@ -18,23 +18,26 @@ const core = require('../test-core');
 
 /*==========================   PARAMETERS  =========================*/
 
-const dbName = 'pokec';
+/* Database */
+// const dbName = 'pokec';
 // const dbName = 'films';
-// const dbName = 'citations';
+// const dbName = 'citation';
 // const dbName = 'benchmark';
-const host  = 'http://localhost';
+const dbName = 'biogrid';
 
 /* Performance Benchmars Types */
 var BenchmarkType = Enums.Test;
 /* input for read test */
-const input = __dirname + '/../../data/pokec-10.csv';
+// const input = __dirname + '/../../data/pokec-10.csv';
+// const input = __dirname + '/../../data/citation-50k.csv';
+const input = __dirname + '/../../data/biogrid-50k.csv';
 /* indices to use for read/write test */
 const indices =  __dirname + '/../../data/random-5k.csv';
 /* socket communication */
 // var ws = new Socket('ws://xanadu-boiler-osx:8007');      // <-~ works!
 // var ws = new Socket('ws://127.0.0.1:8007');              // <-~ works!
 // var ws = new Socket('ws://localhost:8007');              // <-~ not always works!
-var ws = new Socket('ws://mc01.cs.purdue.edu:8007');              // <-~ works!
+var ws = new Socket('ws://pdsl19.cs.purdue.edu:8007');              // <-~ works!
 /* lowerbound id used for inserted objects */
 var baseId = 2000000;
 
@@ -178,8 +181,8 @@ class PerformanceBenchmarkTrueno extends core {
         /* adding callback */
         self.callbacks[counter] = function(results){
             // console.log('[%d] {%d | %s} ==> ', self._nproc, id, film, self._ctrl, results); //results._source.prop.control, results);
-            let control = results.object[0]._source.id;
-            self._ctrl  = Math.round((self._ctrl + control) * 100000000) / 100000000;
+            let control = Number(results.object[0]._source.id);
+            self._ctrl  = self._ctrl + control;
 
             self._nproc++;
             self._size += sizeof(results);
@@ -366,7 +369,7 @@ class PerformanceBenchmarkTrueno extends core {
         /* Times to repeat a testcase */
         let times = 10;
 
-        console.log('trueno');
+        console.log('trueno (%s)', dbName);
 
         switch (self._type) {
 
