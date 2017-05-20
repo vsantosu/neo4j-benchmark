@@ -18,6 +18,8 @@ const DEFAULT_DB = 'films';
 const DEFAULT_INPUT = __dirname + '/../../data/films-10k.csv';
 const times = 10;
 
+const NOCONV = ['film'];
+
 /* Performance Benchmars Types */
 var BenchmarkType = Enums.Test;
 
@@ -205,7 +207,13 @@ class PerformanceBenchmarkCore {
                 .on('data', function(data) {
                     // console.log('-->', data[column]);
                     // keys.push(data[column]);
-                    keys.push(parseInt(data[column]));
+                    let k;
+                    if (NOCONV.find(x => x == self._dbName)) {
+                        k = data[column];
+                    } else {
+                        k = parseInt(data[column]);
+                    }
+                    keys.push(k);
                 })
                 .on('end', function() {
                     hrstart = process.hrtime();

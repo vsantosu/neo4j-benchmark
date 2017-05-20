@@ -30,6 +30,9 @@ const host  = 'bolt://pdsl19.cs.purdue.edu';
 /* Performance Benchmars Types */
 var BenchmarkType = Enums.Test;
 
+/* Configured Databases */
+let DBS = ['film', 'pokec', 'citation', 'biogrid'];
+
 /* Database */
 let dbName = 'biogrid';
 /* input for read test */
@@ -85,18 +88,23 @@ class PerformanceBenchmarkNeo extends core {
         /* This instance object reference */
         let self = this;
 
+        if ( ! DBS.find( x => x == self._dbName ) ) { 
+            console.log('Database not configured: ', self._dbName);
+            process.exit();
+        }
+
         /* Set parameters queries */
-        query_read['films']    = "MATCH (f:Film) -[]-> () WHERE f.name = {name} RETURN f";
+        query_read['film']    = "MATCH (f:Film) -[]-> () WHERE f.name = {name} RETURN f";
         query_read['pokec']    = "MATCH (u:User {userId: {name}}) RETURN u";
         query_read['citation'] = "MATCH (u:Paper {paperId: {name}}) RETURN u";
         query_read['biogrid']  = "MATCH (u:Protein {proteinId: {name}}) RETURN u";
 
-        query_write['films']    = "CREATE (u:Film {filmId:{id}, field1:{age}, field2:{complete}, field3:{gender}, field4:{region}})";
+        query_write['film']    = "CREATE (u:Film {filmId:{id}, field1:{age}, field2:{complete}, field3:{gender}, field4:{region}})";
         query_write['pokec']    = "CREATE (u:User {userId:{id}, age:{age}, completion_percentage:{complete}, gender:{gender}, region:{region}})";
         query_write['citation'] = "CREATE (u:Paper {paperId:{id}, field1:{age}, field2:{complete}, field3:{gender}, field4:{region}})";
         query_write['biogrid']  = "CREATE (u:Protein {proteinId:{id}, field1:{age}, field2:{complete}, field3:{gender}, field4:{region}})";
 
-        query_read_write['films']    = "MATCH (u:Film {filmId: {name}}) SET u.test = {value}  RETURN u";
+        query_read_write['film']    = "MATCH (u:Film {filmId: {name}}) SET u.test = {value}  RETURN u";
         query_read_write['pokec']    = "MATCH (u:User {userId: {name}}) SET u.test = {value}  RETURN u";
         query_read_write['citation'] = "MATCH (u:Paper {paperId: {name}}) SET u.test = {value}  RETURN u";
         query_read_write['biogrid']  = "MATCH (u:Protein {proteinId: {name}}) SET u.test = {value}  RETURN u";
