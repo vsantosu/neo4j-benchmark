@@ -1,0 +1,31 @@
+{
+
+  "platform": {
+    "trueno": {
+      "url": "ws://127.0.0.1:8007"
+    },
+    "neo4j": {
+      "url": "bolt://localhost"
+    }
+  },
+
+  "database": {
+    "film": {
+      "convert": false,
+      "separator": ","
+    },
+    "citation": {
+      "convert": true,
+      "separator": ","
+    },
+    "biogrid": {
+      "convert": true,
+      "separator": ","
+    },
+    "pokec": {
+      "convert": true,
+      "separator": "\t"
+    }
+  }
+
+}

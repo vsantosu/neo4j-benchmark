@@ -22,10 +22,11 @@ let neo4j = require('./neo4j/test-neo4j');
  */
 function launchNeo4j(dbname, input, write, type) {
     new neo4j(
-        {   dbName:  dbname,
-            input:   input,
-            indices: write,
-            type:    type });
+        {   platform: "neo4j",
+            dbName:   dbname,
+            input:    input,
+            indices:  write,
+            type:     type });
 }
 
 
@@ -38,11 +39,19 @@ function launchNeo4j(dbname, input, write, type) {
  * @param type {int}      Type of benchmark to be execute.
  */
 function launchTrueno(dbname, input, write, type) {
-    new trueno(
-        {   dbName:  dbname,
-            input:   input,
-            indices: write,
-            type:    type });
+
+    try {
+        new trueno(
+            {   platform: "trueno",
+                dbName:   dbname,
+                input:    input,
+                indices:  write,
+                type:     type });
+    } catch (err) {
+        console.log(err.message);
+        process.exit();
+    }
+
 }
 
 function launch(platform, dbname, input, write, type) {

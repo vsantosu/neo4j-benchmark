@@ -36,8 +36,6 @@ let DBS = ['film', 'pokec', 'citation', 'biogrid'];
 /* Database */
 let dbName = 'biogrid';
 /* input for read test */
-// let input = __dirname + '/../../data/pokec-50k.csv';
-// let input = __dirname + '/../../data/citation-50k.csv';
 let input = __dirname + '/../../data/biogrid-10.csv';
 /* indices to use for read/write test */
 let indices =  __dirname + '/../../data/random-5k.csv';
@@ -47,6 +45,7 @@ var baseId = 2000000;
 let query_read = [];
 let query_write = [];
 let query_read_write = [];
+let query_max = [];
 
 /*========================  CLASS DEFINITION  ======================*/
 
@@ -88,29 +87,50 @@ class PerformanceBenchmarkNeo extends core {
         /* This instance object reference */
         let self = this;
 
-        if ( ! DBS.find( x => x == self._dbName ) ) { 
-            console.log('Database not configured: ', self._dbName);
-            process.exit();
-        }
-
-        /* Set parameters queries */
-        query_read['film']    = "MATCH (f:Film) -[]-> () WHERE f.name = {name} RETURN f";
+        /* Set parameters queries according to database */
+        query_read['film']     = "MATCH (f:Film {filmId: {name}}) RETURN f";
         query_read['pokec']    = "MATCH (u:User {userId: {name}}) RETURN u";
         query_read['citation'] = "MATCH (u:Paper {paperId: {name}}) RETURN u";
         query_read['biogrid']  = "MATCH (u:Protein {proteinId: {name}}) RETURN u";
 
-        query_write['film']    = "CREATE (u:Film {filmId:{id}, field1:{age}, field2:{complete}, field3:{gender}, field4:{region}})";
+        query_write['film']     = "CREATE (u:Film {filmId:{id}, field1:{age}, field2:{complete}, field3:{gender}, field4:{region}})";
         query_write['pokec']    = "CREATE (u:User {userId:{id}, age:{age}, completion_percentage:{complete}, gender:{gender}, region:{region}})";
         query_write['citation'] = "CREATE (u:Paper {paperId:{id}, field1:{age}, field2:{complete}, field3:{gender}, field4:{region}})";
         query_write['biogrid']  = "CREATE (u:Protein {proteinId:{id}, field1:{age}, field2:{complete}, field3:{gender}, field4:{region}})";
 
-        query_read_write['film']    = "MATCH (u:Film {filmId: {name}}) SET u.test = {value}  RETURN u";
+        query_read_write['film']     = "MATCH (u:Film {filmId: {name}}) SET u.test = {value}  RETURN u";
         query_read_write['pokec']    = "MATCH (u:User {userId: {name}}) SET u.test = {value}  RETURN u";
         query_read_write['citation'] = "MATCH (u:Paper {paperId: {name}}) SET u.test = {value}  RETURN u";
         query_read_write['biogrid']  = "MATCH (u:Protein {proteinId: {name}}) SET u.test = {value}  RETURN u";
 
+        query_max['film']     = "MATCH (u:Film)    RETURN MAX(toInt(u.filmId)) AS maxim";
+        query_max['pokec']    = "MATCH (u:User)    RETURN MAX(toInt(u.userId)) AS maxim";
+        query_max['citation'] = "MATCH (u:Paper)   RETURN MAX(toInt(u.paperId)) AS maxim";
+        query_max['biogrid']  = "MATCH (u:Protein) RETURN MAX(toInt(u.proteinId)) AS maxim";
+
+        /* Set control function according to database */
+        switch (self._dbName) {
+            case "film":
+                self.getControl = self.getControlFilm;
+                break;
+
+            case "pokec":
+                self.getControl = self.getControlPokec;
+                break;
+
+
+            case "citation":
+                self.getControl = self.getControlCitation;
+                break;
+
+
+            case "biogrid":
+                self.getControl = self.getControlBiogrid;
+                break;
+        }
+
         /* Create a driver instance. It should be enough to have a single driver per database per application. */
-        self._driver = neo4j.driver(host, neo4j.auth.basic("neo4j", "trueno"));
+        self._driver = neo4j.driver(self._config.url, neo4j.auth.basic("neo4j", "trueno"));
         /* Create a session to run Cypher statements in. */
         self._session = self._driver.session();
         /* Since version 1.3.0 connection is done lazy */
@@ -150,6 +170,34 @@ class PerformanceBenchmarkNeo extends core {
         this._session.close();
     }
 
+    /* pokec */
+    getControlPokec(record) {
+        return Number(record._fields[0].properties.userId);
+    }
+
+    /* biogrid */
+    getControlBiogrid(record) {
+        return Number(record._fields[0].properties.vertexId);
+    }
+
+    /* citation */
+    getControlCitation(record) {
+        return Number(record._fields[0].properties.paperId);
+    }
+
+    /* film */
+    getControlFilm(record) {
+        return Number(record._fields[0].properties.control);
+    }
+
+    getMaxId(query) {
+
+        /* This instance object reference */
+        let self = this;
+        /* Results */
+        return this._session.run(query);
+    }
+
     /*======================= BENCHMARK TESTCASES ======================*/
 
     /*
@@ -176,15 +224,11 @@ class PerformanceBenchmarkNeo extends core {
         /* Results */
         let result = this._session.run(query, param);
 
-
         result
             .subscribe({
                 onNext: function(record) {
                     // console.log('[%d] ==> ', self._nproc, record._fields);
-                    /* pokec */
-                    // let control = Number(record._fields[0].properties.userId);
-                    /* citation */
-                    let control = Number(record._fields[0].properties.paperId);
+                    let control = self.getControl(record);
                     self._ctrl  = self._ctrl + control;
 
                     self._nproc++
@@ -386,8 +430,20 @@ class PerformanceBenchmarkNeo extends core {
 
             /* Single Write */
             case BenchmarkType.SINGLE_WRITE:
-                self.test = self.singleWriteTest;
-                self.repeatTestCase('Single Write', times);
+                console.log('... searching for max identifier ...');
+                self.getMaxId(query_max[self._dbName])
+                    .then(function (record) {
+                        baseId = record.records[0].get('maxim').toNumber() + 1;
+                        console.log ('Max Id {', baseId,'}');
+
+                        self.test = self.singleWriteTest;
+                        self.repeatTestCase('Single Write', times);
+                    })
+                    .catch(function (error) {
+                        throw new Error ("Error while trying get maximum id value");
+                    });
+
+
                 break;
 
             /* Single Read */
@@ -404,7 +460,3 @@ class PerformanceBenchmarkNeo extends core {
 /* exporting the module */
 module.exports = PerformanceBenchmarkNeo;
 
-// let t = new PerformanceBenchmarkNeo({input: input, type: BenchmarkType.SINGLE_READ});
-// let t = new PerformanceBenchmarkNeo({input: input, type: BenchmarkType.SINGLE_WRITE});
-// let t = new PerformanceBenchmarkNeo({input: input, indices: indices, type: BenchmarkType.SINGLE_READ_WRITE});
-// let t = new PerformanceBenchmarkNeo({input: input, type: BenchmarkType.NEIGHBORS});

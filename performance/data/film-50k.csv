@@ -1,4 +1,4 @@
-filmId:ID(Film),name,release_date,control
+filmId:ID(Film),name,release_date
 g.11b769j941,Rachel,2006-01-01,1.00000441
 m.0104bnf4,Black Gospel,2013-11-14,1.00001065
 m.010f5vs5,Return to Boggy Creek,1977-01-01,1.00001486

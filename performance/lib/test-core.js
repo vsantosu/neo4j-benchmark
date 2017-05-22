@@ -9,16 +9,16 @@
 
 /* import modules */
 const Promise = require("bluebird");
-const Enums = require('./enums');
 const csv = require('csv-parser');
 const fs = require('fs');
+
+const config = require('./../config.json');
+const Enums = require('./enums');
 
 // Parameters for test
 const DEFAULT_DB = 'films';
 const DEFAULT_INPUT = __dirname + '/../../data/films-10k.csv';
 const times = 10;
-
-const NOCONV = ['film'];
 
 /* Performance Benchmars Types */
 var BenchmarkType = Enums.Test;
@@ -36,6 +36,8 @@ class PerformanceBenchmarkCore {
      */
     constructor(param = {}) {
 
+        /* Platform (eg. neo4j, trueno) */
+        this._platform = param.platform;
         /* Database */
         this._dbName = param.dbName || DEFAULT_DB;
         /* Input data file */
@@ -52,14 +54,34 @@ class PerformanceBenchmarkCore {
         this._proc = 0;
         this._time = 0;
 
+        /* Check database params */
+        if ( config.database[this._dbName] == undefined) {
+            throw new Error('Database is not configured: ' + this._dbName);
+        }
 
-        console.log('--> ', this._dbName);
-        console.log('--> ', this._input);
-        console.log('--> ', this._input_indices);
-        console.log('--> ', this._type);
+        /* Platform specific configuration */
+        this._config = config.platform[this._platform];
+
+        /* Database params */
+        this._cnv = config.database[this._dbName].convert;
+        this._sep = config.database[this._dbName].separator;
+
+        /* Print params */
+        this.print(1);
     }
 
     /*========================= HELPER FUNCTIONS =======================*/
+
+    print(opt) {
+
+        switch (opt) {
+            case 1:
+                if (this._dbName) console.log(' : db-name       [ ', this._dbName, ' ]');
+                if (this._input)  console.log(' : input         [ ', this._input, ' ]');
+                if (this._input_indices) console.log(' : input indices [ ', this._input_indices, ' ]');
+                break;
+        }
+    }
 
     /**
      * Clean variables
@@ -71,6 +93,13 @@ class PerformanceBenchmarkCore {
      * Close session
      */
     close() {
+    }
+
+    /**
+     * Compute the control value used to validate that operations were performed successfully.
+     * @param record
+     */
+    getControl(record) {
     }
 
     test() {
@@ -199,21 +228,19 @@ class PerformanceBenchmarkCore {
 
             let column;
             fs.createReadStream(self._input)
-                //.pipe(csv({separator: ','}))
-                .pipe(csv({separator: '\t'}))
+                .pipe(csv({separator: self._sep}))
                 .on('headers', function (headerList) {
                     column = headerList[0]
                 })
                 .on('data', function(data) {
                     // console.log('-->', data[column]);
-                    // keys.push(data[column]);
-                    let k;
-                    if (NOCONV.find(x => x == self._dbName)) {
-                        k = data[column];
+                    let key;
+                    if (self._cnv) {
+                        key = parseInt(data[column]);
                     } else {
-                        k = parseInt(data[column]);
+                        key = data[column];
                     }
-                    keys.push(k);
+                    keys.push(key);
                 })
                 .on('end', function() {
                     hrstart = process.hrtime();
