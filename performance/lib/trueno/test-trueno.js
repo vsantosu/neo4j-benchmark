@@ -18,28 +18,17 @@ const core = require('../test-core');
 
 /*==========================   PARAMETERS  =========================*/
 
-/* Database */
-// const dbName = 'pokec';
-// const dbName = 'films';
-// const dbName = 'citation';
-// const dbName = 'benchmark';
-const dbName = 'biogrid';
-
 /* Performance Benchmars Types */
 var BenchmarkType = Enums.Test;
-/* input for read test */
-// const input = __dirname + '/../../data/pokec-10.csv';
-// const input = __dirname + '/../../data/citation-50k.csv';
-const input = __dirname + '/../../data/biogrid-50k.csv';
-/* indices to use for read/write test */
-const indices =  __dirname + '/../../data/random-5k.csv';
 /* socket communication */
-// var ws = new Socket('ws://xanadu-boiler-osx:8007');      // <-~ works!
-// var ws = new Socket('ws://127.0.0.1:8007');              // <-~ works!
-// var ws = new Socket('ws://localhost:8007');              // <-~ not always works!
-var ws = new Socket('ws://pdsl19.cs.purdue.edu:8007');              // <-~ works!
+var ws;
 /* lowerbound id used for inserted objects */
 var baseId = 2000000;
+
+/* queries according to database */
+let query_read = [];
+let query_write = [];
+let query_read_write = [];
 
 /*========================  CLASS DEFINITION  ======================*/
 
@@ -85,6 +74,40 @@ class PerformanceBenchmarkTrueno extends core {
         let self = this;
         /* Create callbacks reference */
         self.callbacks = {};
+
+        /* Set parameters queries according to database */
+        query_read['film']     = "_prop.filmId";
+        query_read['pokec']    = "_id";
+        query_read['citation'] = "_id";
+        query_read['biogrid']  = "_id";
+
+        query_read_write['film']     = "_prop.filmId";
+        query_read_write['pokec']    = "_id";
+        query_read_write['citation'] = "_id";
+        query_read_write['biogrid']  = "_id";
+
+        /* Set control function according to database */
+        switch (self._dbName) {
+            case "film":
+                self.getControl = self.getControlFilm;
+                break;
+
+            case "pokec":
+                self.getControl = self.getControlPokec;
+                break;
+
+
+            case "citation":
+                self.getControl = self.getControlCitation;
+                break;
+
+
+            case "biogrid":
+                self.getControl = self.getControlBiogrid;
+                break;
+        }
+
+        ws = new Socket(self._config.url);
 
         /* socket communication callbacks */
         ws.on('open', function open() {
@@ -137,6 +160,26 @@ class PerformanceBenchmarkTrueno extends core {
         process.exit();
     }
 
+    /* pokec */
+    getControlPokec(results) {
+        return Number(results.object[0]._source.id);
+    }
+
+    /* biogrid */
+    getControlBiogrid(results) {
+        return Number(results.object[0]._source.id);
+    }
+
+    /* citation */
+    getControlCitation(results) {
+        return Number(results.object[0]._source.id);
+    }
+
+    /* film */
+    getControlFilm(results) {
+        return Number(results.object[0]._source._prop.control);
+    }
+
     /*======================= BENCHMARK TESTCASES ======================*/
 
     /*
@@ -159,8 +202,7 @@ class PerformanceBenchmarkTrueno extends core {
         let self = this;
         let counter = 'films-' + id;
         /* Query for filtering vertices */
-        // let q = "{\"query\":{\"bool\":{\"filter\":{\"term\":{\"_id\":\""+film+"\"}}}}}";    // <-~ ES 2.3.x
-        let q = "{\"bool\":{\"filter\":{\"term\":{\"_id\":\""+film+"\"}}}}";                // <-~ ES 5.x
+        let q = "{\"bool\":{\"filter\":{\"term\":{\"" + query_read[self._dbName] + "\":\"" + film + "\"}}}}";
 
         /* the payload object */
         var internal = {
@@ -180,8 +222,8 @@ class PerformanceBenchmarkTrueno extends core {
         ws.send(JSON.stringify(payload));
         /* adding callback */
         self.callbacks[counter] = function(results){
-            // console.log('[%d] {%d | %s} ==> ', self._nproc, id, film, self._ctrl, results); //results._source.prop.control, results);
-            let control = Number(results.object[0]._source.id);
+            //console.log('[%d] {%d | %s} ==> ', self._nproc, id, film, self._ctrl, results); //results._source.prop.control, results);
+            let control = self.getControl(results);
             self._ctrl  = self._ctrl + control;
 
             self._nproc++;
@@ -265,9 +307,8 @@ class PerformanceBenchmarkTrueno extends core {
         let counter1 = 'films-' + id;
         let counter2 = 'persist-' + id;
         /* Query for filtering vertices */
-        // let q = "{\"query\":{\"bool\":{\"filter\":{\"term\":{\"_id\":\""+film+"\"}}}}}";    // <-~ ES 2.x
-        let q = "{\"bool\":{\"filter\":{\"term\":{\"_id\":\""+film+"\"}}}}";                // <-~ ES 5.x
-
+        /* Query for filtering vertices */
+        let q = "{\"bool\":{\"filter\":{\"term\":{\"" + query_read_write[self._dbName] + "\":\"" + film + "\"}}}}";
 
         /* the payload object */
         var internal = {
@@ -288,8 +329,8 @@ class PerformanceBenchmarkTrueno extends core {
         /* adding callback */
         self.callbacks[counter1] = function(results){
             // console.log('[%d] {%d | %s} ==> ', self._nproc, id, film, self._ctrl, results.object[0]._source); //results._source.prop.control, results);
-            let control = results.object[0]._source.id;
-            self._ctrl  = Math.round((self._ctrl + control) * 100000000) / 100000000;
+            let control = self.getControl(results);
+            self._ctrl  = self._ctrl + control;
 
             /* if the object is marked for writing, do it */
             if (doWrite) {
@@ -369,7 +410,7 @@ class PerformanceBenchmarkTrueno extends core {
         /* Times to repeat a testcase */
         let times = 10;
 
-        console.log('trueno (%s)', dbName);
+        console.log('trueno (%s)', self._dbName);
 
         switch (self._type) {
 
@@ -406,8 +447,3 @@ class PerformanceBenchmarkTrueno extends core {
 
 /* exporting the module */
 module.exports = PerformanceBenchmarkTrueno;
-
-// let t = new PerformanceBenchmarkTrueno({input: input, type: BenchmarkType.SINGLE_READ});
-// let t = new PerformanceBenchmarkTrueno({input: input, type: BenchmarkType.SINGLE_WRITE});
-// let t = new PerformanceBenchmarkTrueno({input: input, indices: indices, type: BenchmarkType.SINGLE_READ_WRITE});
-// let t = new PerformanceBenchmarkTrueno({input: input, type: BenchmarkType.NEIGHBORS});
