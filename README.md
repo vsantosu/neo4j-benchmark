@@ -218,8 +218,8 @@ Read vertices (and all its properties).
 
 | Test             |	GraphDB | Input (vertices)	| Time (secs) | Std Dev | Throughput (records/secs) | Std Dev | 
 | ----------       | -------- | ----------------- |------------ | ------- | -------------| -------------- |
-| Single Reads     | Trueno 	| 50000             | 13.066      | 3.485   | 2735.359     |  708.926       | 
-| Single Reads     | Neo4j    | 50000             | 18.278      | 0.817   | 3826.472     |  111.631       |
+| Single Reads     | Trueno 	| 50000             | 13.066      | 3.485   | 3826.472     |  708.926       |
+| Single Reads     | Neo4j    | 50000             | 18.278      | 0.817   | 2735.359     |  111.631       | 
 | Single Writes    | Trueno   | 5000              | 1.722       | 0.755   | 2901.416     |  1005.418      |
 | Single Writes    | Neo4j    | 5000              | 135.689     | 2.361   | 36.841       |  0.636         |  
 | Single Reads+Write (90/10) | Trueno   |  50000  |  12.168     | 0.531   |  4108.709    |  169.100       |
