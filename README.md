@@ -214,14 +214,50 @@ Read vertices (and all its properties).
 
 ## Latest Results
 
+### Film
+
 | Test             |	GraphDB | Input (vertices)	| Time (secs) | Std Dev | Throughput (records/secs) | Std Dev | 
 | ----------       | -------- | ----------------- |------------ | ------- | -------------| -------------- |
-| Single Reads     | Trueno 	| 50000             | 14.645      | 1.612   | 3413.83      |  360.772       | 
-| Single Reads     | Neo4j    | 50000             | 14.049      | 1.524   | 3558.765     |  356.896       |
-| Single Reads+Write (90/10) | Trueno   |  50000  |  27.703     | 4.776   |  1804.793    |  227.376       |
-| Single Reads+Write (90/10) | Neo4j    |  50000  |  25.486     | 5.742   |  1961.752    |  334.748       |
-| Single Writes    | Trueno   | 5000              | 3.620       | 1.366   | 1380.717     |  397.886       |
-| Single Writes    | Neo4j    | 5000              | 27.1322     | 16.203  | 184.242      |  79.332        |     
+| Single Reads     | Trueno 	| 50000             | 13.066      | 3.485   | 2735.359     |  708.926       | 
+| Single Reads     | Neo4j    | 50000             | 18.278      | 0.817   | 3826.472     |  111.631       |
+| Single Writes    | Trueno   | 5000              | 1.722       | 0.755   | 2901.416     |  1005.418      |
+| Single Writes    | Neo4j    | 5000              | 135.689     | 2.361   | 36.841       |  0.636         |  
+| Single Reads+Write (90/10) | Trueno   |  50000  |  12.168     | 0.531   |  4108.709    |  169.100       |
+| Single Reads+Write (90/10) | Neo4j    |  50000  |  25.870     | 0.338   |  1932.599    |  25.119        |
+
+### Citation
+
+| Test             |	GraphDB | Input (vertices)	| Time (secs) | Std Dev | Throughput (records/secs) | Std Dev | 
+| ----------       | -------- | ----------------- |------------ | ------- | -------------| -------------- |
+| Single Reads     | Trueno 	| 29554             | 6.8154      | 1.120   | 4336.033     |  638.157       | 
+| Single Reads     | Neo4j    | 29554             | 5.7775      | 1.477   | 5187.623     |  858.942       |
+| Single Writes    | Trueno   | 5000              | 1.0637      | 0.449   | 4697.750     |  2232.762      |
+| Single Writes    | Neo4j    | 5000              | 161.547     | 1.562   | 30.944       |  0.298         |  
+| Single Reads+Write (90/10) | Trueno   |  29554  |  6.905      | 0.409   |  4279.639    |  229.381       |
+| Single Reads+Write (90/10) | Neo4j    |  29554  |  9.185      | 0.280   |  3217.221    |  93.660        |
+
+### Biogrid
+
+| Test             |	GraphDB | Input (vertices)	| Time (secs) | Std Dev | Throughput (records/secs) | Std Dev | 
+| ----------       | -------- | ----------------- |------------ | ------- | -------------| -------------- |
+| Single Reads     | Trueno 	| 15034             | 3.377       | 0.151   | 4450.580     |  199.569       | 
+| Single Reads     | Neo4j    | 15034             | 3.247       | 0.929   | 4629.132     |  854.612       |
+| Single Writes    | Trueno   | 5000              | 1.051       | 0.146   | 4752.477     |  564.303       |
+| Single Writes    | Neo4j    | 5000              | 88.540      | 0.797   | 56.459       |  0.509         |  
+| Single Reads+Write (90/10) | Trueno   |  15034  |  4.367      | 0.476   |  3442.051    |  363.237       |
+| Single Reads+Write (90/10) | Neo4j    |  15034  |  5.857      | 4.992   |  2566.537    |  876.241       |
+
+### Pokec
+
+| Test             |	GraphDB | Input (vertices)	| Time (secs) | Std Dev | Throughput (records/secs) | Std Dev | 
+| ----------       | -------- | ----------------- |------------ | ------- | -------------| -------------- |
+| Single Reads     | Trueno 	| 50000             | 15.415      | 1.035   | 3243.288     |  210.091       | 
+| Single Reads     | Neo4j    | 50000             | 19.087      | 0.227   | 2619.410     |  30.945        |
+| Single Writes    | Trueno   | 5000              | 0.729       | 0.174   | 6853.291     |  1533.994      |
+| Single Writes    | Neo4j    | 5000              | 162.509     | 2.352   | 30.761       |  0.449         |  
+| Single Reads+Write (90/10) | Trueno   |  50000  |  17.596     | 1.873   |  2841.424    |  303.476       |
+| Single Reads+Write (90/10) | Neo4j    |  50000  |  28.862     | 0.332   |  1228.288    |  19.822        |
+
 
 ----------
 
