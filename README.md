@@ -258,6 +258,9 @@ Read vertices (and all its properties).
 | Single Reads+Write (90/10) | Trueno   |  50000  |  17.596     | 1.873   |  2841.424    |  303.476       |
 | Single Reads+Write (90/10) | Neo4j    |  50000  |  28.862     | 0.332   |  1228.288    |  19.822        |
 
+<p align="left">
+  <img src="https://raw.githubusercontent.com/mastayoda/neo4j-benchmark/master/assets/images/performance_all_datasets.png">
+</p>
 
 ----------
 
