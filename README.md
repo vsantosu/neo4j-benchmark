@@ -262,6 +262,10 @@ Read vertices (and all its properties).
   <img src="https://raw.githubusercontent.com/mastayoda/neo4j-benchmark/master/assets/images/performance_all_datasets.png">
 </p>
 
+<p align="center">
+  <img src="https://raw.githubusercontent.com/mastayoda/neo4j-benchmark/master/assets/images/performance_all_datasets_single_plot.png">
+</p>
+
 ----------
 
 # 5. Batch Write Benchmarks
