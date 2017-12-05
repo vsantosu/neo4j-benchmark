@@ -10,7 +10,7 @@
 
 const cli = require('commander');
 const Enums = require('./enums');
-const utils = require('./run-core');
+const core = require('./run-core');
 const pkg = require('../../package.json');
 
 /* Performance Benchmars Types */
@@ -21,10 +21,11 @@ cli._name = "$ run read";
 cli.version(pkg.version)
     .option('-p, --platform <string>', 'Set platform to use for test (eg. Neo4j, Trueno)')
     .option('-d, --dbname <string>', 'Set database')
-    .option('-i, --input <string>',  'Set input file')
+    .option('-i, --input <items>',  'Set input file', core.list)
+    .option('-o, --output <string>', 'Set output file')
     .parse(process.argv);
 
 console.log('Launching single read test ...');
 
-utils.launch(cli.platform, cli.dbname, cli.input, cli.write, BenchmarkType.SINGLE_READ);
+core.launch(cli.platform, cli.dbname, cli.input, cli.write, BenchmarkType.SINGLE_READ, cli.output);
 

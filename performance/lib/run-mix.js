@@ -10,7 +10,7 @@
 
 const cli = require('commander');
 const Enums = require('./enums');
-const utils = require('./run-core');
+const core = require('./run-core');
 const pkg = require('../../package.json');
 
 /* Performance Benchmars Types */
@@ -23,6 +23,7 @@ cli.version(pkg.version)
     .option('-d, --dbname <string>', 'Set database')
     .option('-i, --input <string>',  'Set input file')
     .option('-w, --write <string>',  'Set input file used for read/write (90/10) benchmark')
+    .option('-o, --output <string>', 'Set output file')
     .parse(process.argv);
 
 if ( !cli.write ) {
@@ -32,6 +33,6 @@ if ( !cli.write ) {
 
 console.log('Launching read/write load (90/10) test ...');
 
-utils.launch(cli.platform, cli.dbname, cli.input, cli.write, BenchmarkType.SINGLE_READ_WRITE);
+core.launch(cli.platform, cli.dbname, cli.input, cli.write, BenchmarkType.SINGLE_READ_WRITE, cli.output);
 
 

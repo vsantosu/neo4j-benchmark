@@ -17,7 +17,7 @@ const fs = require('fs');
 
 var ws = new Socket('ws://localhost:8008');
 // var limit = 1000000;
-var limit = 49999;
+var limit = 9;
 var total = 0;
 var control = 0;
 var counter = 0;
@@ -25,7 +25,7 @@ const INTERVAL = 1;
 var queue = [];
 
 /* input for test1 */
-const input = __dirname + '/../../../../../performance/data/films-50k.csv';
+const input = __dirname + '/../../../../../performance/data/films-10.csv';
 
 var hrstart = [];
 var hrend = [];

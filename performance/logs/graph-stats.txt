@@ -1,0 +1,31 @@
+
+# Pokec
+:User (age, completion_percentage, gender, last_login, public, region, registration, userId)
+:KNOWS
+
+vertices:	 1.632.803
+edges:  	30.622.564
+
+
+# Biogrid
+:Protein (label, name, proteinId)
+:INTERACTS
+
+vertices:	 15.034
+edges:  	301.685
+
+
+# Citations
+:Paper (paperId, title)
+:CITES
+
+vertices:	 29.554
+edges:  	167.103
+
+# Film
+vertices:	32.7642
+edges:  	725.788
+
+
+$ MATCH (u)  RETURN COUNT(u);
+$ MATCH ()-[e]-()  RETURN COUNT(DISTINCT e) ;

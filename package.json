@@ -19,6 +19,7 @@
     "sizeof": "^1.0.0",
     "probability-distributions": "^0.8.5",
     "uws": "^0.14.1",
-    "commander": "^2.9.0"
+    "commander": "^2.9.0",
+    "stats-lite": "^2.0.4"
   }
 }

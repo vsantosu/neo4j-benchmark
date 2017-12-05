@@ -168,6 +168,7 @@ class PerformanceBenchmarkNeo extends core {
     close() {
         /* Close Neo4j driver session */
         this._session.close();
+        process.exit();
     }
 
     /* pokec */
@@ -177,7 +178,7 @@ class PerformanceBenchmarkNeo extends core {
 
     /* biogrid */
     getControlBiogrid(record) {
-        return Number(record._fields[0].properties.vertexId);
+        return Number(record._fields[0].properties.proteinId);
     }
 
     /* citation */
@@ -322,8 +323,10 @@ class PerformanceBenchmarkNeo extends core {
                     self._nproc++
                     self._receivedReq++;
                     self._write++;
-                    let control = Number(record.records[0]._fields[0].properties.userId);
-                    self._ctrl  = Math.round((self._ctrl + control) * 100000000) / 100000000;
+
+                    let control = self.getControl(record.records[0]);
+                    self._ctrl  = self._ctrl + control;
+
                     if(self._receivedReq >= totalReq) {
                         resolve({nproc: self._nproc, size: self._size, ctrl: self._ctrl, write: self._write});
                     }
@@ -340,10 +343,11 @@ class PerformanceBenchmarkNeo extends core {
                 .subscribe({
                     onNext: function(record) {
                         // console.log('[%d] ==> ', self._nproc, record._fields);
-                        let control = Number(record._fields[0].properties.userId);
+                        let control = self.getControl(record);
+                        self._ctrl  = self._ctrl + control;
+
                         self._nproc++
                         self._size += sizeof(record);
-                        self._ctrl  = Math.round((self._ctrl + control) * 100000000) / 100000000;
                     },
                     onCompleted: function(metadata) {
                         // console.log('onCompleted: ', metadata);

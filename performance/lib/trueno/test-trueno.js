@@ -117,7 +117,7 @@ class PerformanceBenchmarkTrueno extends core {
         });
 
         ws.on('error', function error(err) {
-            console.log('Error connecting!');
+            console.log('Error connecting to ', self._config.url);
             console.log(err);
         });
 
@@ -126,7 +126,7 @@ class PerformanceBenchmarkTrueno extends core {
             // console.log('--> ', obj.object[0]._source.prop.control);
             // control += obj.object[0]._source.prop.control;
             /* invoke the callback */
-            self.callbacks[obj.callbackIndex](obj);
+            self.callbacks[obj.callbackId](obj);
 
             // console.log('Message: ' + data);
         });
@@ -162,22 +162,22 @@ class PerformanceBenchmarkTrueno extends core {
 
     /* pokec */
     getControlPokec(results) {
-        return Number(results.object[0]._source.id);
+        return Number(results.resultSet[0]._source.id);
     }
 
     /* biogrid */
     getControlBiogrid(results) {
-        return Number(results.object[0]._source.id);
+        return Number(results.resultSet[0]._source.id);
     }
 
     /* citation */
     getControlCitation(results) {
-        return Number(results.object[0]._source.id);
+        return Number(results.resultSet[0]._source.id);
     }
 
     /* film */
     getControlFilm(results) {
-        return Number(results.object[0]._source._prop.control);
+        return Number(results.resultSet[0]._source._prop.control);
     }
 
     /*======================= BENCHMARK TESTCASES ======================*/
@@ -200,7 +200,9 @@ class PerformanceBenchmarkTrueno extends core {
 
         /* This instance object reference */
         let self = this;
-        let counter = 'films-' + id;
+        /* Callback function names */
+        let cb_ok = 'films-ok-' + id;
+        let cb_fail = 'films-fail-' + id;
         /* Query for filtering vertices */
         let q = "{\"bool\":{\"filter\":{\"term\":{\"" + query_read[self._dbName] + "\":\"" + film + "\"}}}}";
 
@@ -213,7 +215,8 @@ class PerformanceBenchmarkTrueno extends core {
         };
 
         var payload = {
-            callbackIndex: counter,
+            callbackIdOK: cb_ok,
+            callbackIdError: cb_fail,
             action: "search",
             object: internal
         };
@@ -221,8 +224,8 @@ class PerformanceBenchmarkTrueno extends core {
 
         ws.send(JSON.stringify(payload));
         /* adding callback */
-        self.callbacks[counter] = function(results){
-            //console.log('[%d] {%d | %s} ==> ', self._nproc, id, film, self._ctrl, results); //results._source.prop.control, results);
+        self.callbacks[cb_ok] = function(results){
+            console.log('[%d] {%d | %s} (%s) ==> ', self._nproc, id, film, q, self._ctrl, results); //results._source.prop.control, results);
             let control = self.getControl(results);
             self._ctrl  = self._ctrl + control;
 
@@ -234,6 +237,12 @@ class PerformanceBenchmarkTrueno extends core {
             if(self._receivedReq >= totalReq){
                 resolve({nproc: self._nproc, size: self._size, ctrl: self._ctrl});
             }
+        };
+
+        /* adding failure callback */
+        self.callbacks[cb_fail] = function(results){
+            console.log('ERR [%d] ==> ', id, results);
+            reject(results);
         };
 
     }
@@ -306,7 +315,6 @@ class PerformanceBenchmarkTrueno extends core {
         let self = this;
         let counter1 = 'films-' + id;
         let counter2 = 'persist-' + id;
-        /* Query for filtering vertices */
         /* Query for filtering vertices */
         let q = "{\"bool\":{\"filter\":{\"term\":{\"" + query_read_write[self._dbName] + "\":\"" + film + "\"}}}}";
 
@@ -408,7 +416,7 @@ class PerformanceBenchmarkTrueno extends core {
         /* This instance object reference */
         let self = this;
         /* Times to repeat a testcase */
-        let times = 10;
+        let times = 1;
 
         console.log('trueno (%s)', self._dbName);
 

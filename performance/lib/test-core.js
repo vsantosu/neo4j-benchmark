@@ -9,6 +9,8 @@
 
 /* import modules */
 const Promise = require("bluebird");
+const stats = require('stats-lite');
+const util = require('util');
 const csv = require('csv-parser');
 const fs = require('fs');
 
@@ -46,6 +48,8 @@ class PerformanceBenchmarkCore {
         this._input_indices = param.indices;
         this._indices = [];
         this._random  = false;
+        /* Output data file */
+        this._output = param.output;
         /* Benchmark test to execute */
         this._type = param.type || BenchmarkType.SINGLE_READ;
         /* Controls the execution of the testcase */
@@ -53,6 +57,10 @@ class PerformanceBenchmarkCore {
 
         this._proc = 0;
         this._time = 0;
+
+        this._procArr = [];
+        this._timeArr = [];
+        this._tpArr   = [];
 
         /* Check database params */
         if ( config.database[this._dbName] == undefined) {
@@ -72,14 +80,31 @@ class PerformanceBenchmarkCore {
 
     /*========================= HELPER FUNCTIONS =======================*/
 
+    /**
+     * Display params
+     * @param opt
+     */
     print(opt) {
 
         switch (opt) {
             case 1:
                 if (this._dbName) console.log(' : db-name       [ ', this._dbName, ' ]');
-                if (this._input)  console.log(' : input         [ ', this._input, ' ]');
+                if (this._input)  console.log(' : input         ',   this._input);
                 if (this._input_indices) console.log(' : input indices [ ', this._input_indices, ' ]');
                 break;
+        }
+    }
+
+    /**
+     * Append info to the output file
+     * @param out {String} String to be appended to the output file.
+     */
+    output(out) {
+        /* This instance object reference */
+        let self = this;
+        /* Check if the output file is defined */
+        if (self._output !== undefined ) {
+            fs.appendFileSync(self._output, out);
         }
     }
 
@@ -114,7 +139,7 @@ class PerformanceBenchmarkCore {
 
         /* This instance object reference */
         let self = this;
-        /**/
+        /* Mark if the random input file was provided */
         self._random = this._input_indices !== undefined ? true : false;
 
 
@@ -160,6 +185,17 @@ class PerformanceBenchmarkCore {
                 .then(result => {
                     console.log('\t avg: %d', self._proc/self._time)
                     console.log('done!');
+                    /* Append summary to output file */
+                    let out = util.format(
+                        "---\t%s\t%s\t%d\t%d\t%d\t%d\n",
+                        self._platform,
+                        self._dbName,
+                        stats.mean(self._timeArr),
+                        stats.stdev(self._timeArr),
+                        stats.mean(self._tpArr),
+                        stats.stdev(self._tpArr));
+
+                    self.output(out);
                     /* close session */
                     self.close();
                 }, error => {
@@ -188,6 +224,10 @@ class PerformanceBenchmarkCore {
                     /* Accumulate stats */
                     self._proc += result.processed;
                     self._time += result.time;
+                    /* Acummulate stats on arrays */
+                    self._procArr.push(result.processed);
+                    self._timeArr.push(result.time);
+                    self._tpArr.push(result.processed/result.time);
                     /* Check if there are more calls enqueued */
                     if (self._control.length > 0) {
                         self.clean();
@@ -223,11 +263,19 @@ class PerformanceBenchmarkCore {
         let hrstart, hrend;
         /* Total of records processed */
         let total=0, size=0, ctrl=0, write=0;
+        /* Input file */
+        let input;
+
+        /* If the array of inputs has more than one value, choose the next input; otherwise choose the first one */
+        if (self._input.length > 1)
+            input = self._input.shift();
+        else
+            input = self._input[0];
 
         return new Promise((resolve, reject) => {
 
             let column;
-            fs.createReadStream(self._input)
+            fs.createReadStream(input)
                 .pipe(csv({separator: self._sep}))
                 .on('headers', function (headerList) {
                     column = headerList[0]
@@ -271,12 +319,29 @@ class PerformanceBenchmarkCore {
 
                             /* Print output */
                             console.log(
-                                '%s\t%ds %dms\t%d\trecords\t%d records/s\t%d\tms (avg call)\t%d\tbytes\t%d\tbytes/call\t%d\tbytes/s\t%d\twrites\t%d',
+                                '%s\t%ds %dms\t' +
+                                '%d\trecords\t%d records/s\t%d\tms (avg call)\t' +
+                                '%d\tbytes\t%d\tbytes/call\t%d\tbytes/s\t%d\twrites\t%d',
                                 label, hrend[0], hrend[1]/1000000,
                                 total, total/(hrend[0] + hrend[1]/1000000000), (hrend[0]*1000 + hrend[1]/1000000)/total,
                                 size, size/total, size/(hrend[0] + hrend[1]/1000000000),
                                 write,
                                 ctrl);
+
+                            /* Append summary to output file */
+                            let out;
+                            let time = hrend[0] + hrend[1]/1000000000;
+
+                            out = util.format("%s\t%s\t%d\t%d\t%d\t%d\n",
+                                self._platform,
+                                self._dbName,
+                                time,
+                                total,
+                                total / time,
+                                ctrl);
+
+                            self.output(out);
+
                             resolve({processed: total, time: hrend[0] + hrend[1]/1000000000});
                         })
                         .catch(error => {
